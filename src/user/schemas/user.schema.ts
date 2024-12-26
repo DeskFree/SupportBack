@@ -4,26 +4,25 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
   timestamps: true,
 })
 export class User {
-  @Prop()
-  @Prop({ unique: true })
+  @Prop({ type: String, unique: true })
   _id: string;
 
-  @Prop()
+  @Prop({ type: String })
   name: string;
 
-  @Prop()
+  @Prop({ type: String })
   email: string;
 
-  @Prop()
+  @Prop({ type: String })
   password: string;
 
-  @Prop()
+  @Prop({ type: String })
   role: string;
 
-  @Prop()
+  @Prop({ type: String })
   status: string;
 
-  @Prop()
+  @Prop({ type: String })
   avatar: string;
 }
 
