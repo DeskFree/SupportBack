@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+console.log('MONGO_URI:', process.env.MONGO_URI);
+
 @Module({
   imports: [
     // added config file to nestjs
