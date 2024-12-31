@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -25,6 +26,8 @@ console.log('MONGO_URI:', process.env.MONGO_URI);
     UserModule,
 
     AuthModule,
+
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
