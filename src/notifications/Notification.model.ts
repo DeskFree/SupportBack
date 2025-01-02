@@ -3,7 +3,7 @@ export interface Notification {
     title: string;     // Title of the notification
     message: string;   // Main content or message
     timestamp: Date;   // When the notification was created
-    read: boolean;     // Whether the notification has been read
+    read?: boolean;     // Whether the notification has been read
     type?: NotificationType;     // Optional: Type of the notification (e.g., "info", "warning", "alert")
     userId?: string;   // Optional: ID of the user associated with the notification
   }
