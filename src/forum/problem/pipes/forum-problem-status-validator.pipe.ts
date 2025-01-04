@@ -5,7 +5,7 @@ import { throwIfEmpty } from 'rxjs';
 @Injectable()
 export class ForumProblemStatusValidatorPipe implements PipeTransform {
   transform(value: any, metadata: ArgumentMetadata) {
-    if(! (value.status in ProblemStatus)){
+    if(! (value.status.toLocaleUpperCase() in ProblemStatus)){
       throw new BadRequestException(`${value.status} is not a valid Status`)
     }
     return value;

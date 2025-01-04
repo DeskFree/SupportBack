@@ -27,4 +27,7 @@ export class ProblemRepository {
   async deleteProblem(id:string): Promise<Problem> {
     return await this.problemModel.findByIdAndDelete(id);
   }
+  async searchProblem(filter: Record<string, any>): Promise<Problem[]> {
+    return await this.problemModel.find(filter);
+  }
 }

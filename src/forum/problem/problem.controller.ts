@@ -30,11 +30,11 @@ export class ProblemController {
   @Get()
   // @UsePipes(ValidationPipe)
   async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
-    return await this.problemService.getAllProblem();
-    // if (Object.keys(param).length) {
-    //   return this.problemService.searchProblem(param);
-    // } else {
-    // }
+    if (Object.keys(param).length) {
+      return this.problemService.searchProblem(param);
+    } else {
+      return await this.problemService.getAllProblem();
+    }
   }
 
   @Put('/:id')

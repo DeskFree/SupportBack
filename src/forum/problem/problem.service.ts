@@ -19,16 +19,17 @@ export class ProblemService {
     return problems;
   }
 
-  searchProblem(searchProblemDto: SearchProblemDto): Problem {
+  async searchProblem(searchProblemDto: SearchProblemDto): Promise<Problem[]> {
     const { title, tags, status } = searchProblemDto;
-    let problems = null;
+    let filter: any = {};
     if (title) {
-      //problem filter query and assign it to var
+      filter.title = title;
     } else if (tags) {
-      //problem filter query and assign it to var
+      filter.tags = tags;
     } else if (status) {
-      //problem filter query and assign it to var
+      filter.status = status.toLocaleUpperCase();
     }
+    let problems = await this.problemRepository.searchProblem(filter);
     return problems;
   }
 
@@ -42,7 +43,7 @@ export class ProblemService {
   }
 
   async deleteProblem(id: string): Promise<Problem> {
-    const problem = await this.problemRepository.deleteProblem(id); 
+    const problem = await this.problemRepository.deleteProblem(id);
     return problem;
   }
 }
