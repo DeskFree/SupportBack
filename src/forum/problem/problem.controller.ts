@@ -7,22 +7,27 @@ import {
   Post,
   Put,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
-import { SearchProblemDto } from './dto/SearchProblem.dto';
-import { CreateProblemDto } from './dto/createProblem.dto';
-import { UpdateProblemDto } from './dto/updateProblem.dto';
+import { SearchProblemDto } from './dtos/search-problem.dto';
+import { CreateProblemDto } from './dtos/create-problem.dto';
+import { UpdateProblemDto } from './dtos/update-problem.Dto';
+import { ForumProblemStatusValidatorPipe } from './pipes/forum-problem-status-validator.pipe';
 
 @Controller('forum/problem')
 export class ProblemController {
   constructor(private readonly problemService: ProblemService) {}
 
   @Post()
+  @UsePipes(ValidationPipe)
   createProblem(@Body() newProblem: CreateProblemDto) {
     return this.problemService.createProblem(newProblem);
   }
 
   @Get()
+  @UsePipes(ValidationPipe)
   getProblems(@Query() param: SearchProblemDto) {
     if (Object.keys(param).length) {
       return this.problemService.searchProblem(param);
