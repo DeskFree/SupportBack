@@ -15,6 +15,7 @@ import { SearchProblemDto } from './dtos/search-problem.dto';
 import { CreateProblemDto } from './dtos/create-problem.dto';
 import { UpdateProblemDto } from './dtos/update-problem.Dto';
 import { ForumProblemStatusValidatorPipe } from './pipes/forum-problem-status-validator.pipe';
+import { Problem } from './schemas/problem.schema';
 
 @Controller('forum/problem')
 export class ProblemController {
@@ -22,18 +23,18 @@ export class ProblemController {
 
   @Post()
   @UsePipes(ValidationPipe)
-  createProblem(@Body() newProblem: CreateProblemDto) {
-    return this.problemService.createProblem(newProblem);
+  async createProblem(@Body() newProblem: CreateProblemDto) {
+    return await this.problemService.createProblem(newProblem);
   }
 
   @Get()
-  @UsePipes(ValidationPipe)
-  getProblems(@Query() param: SearchProblemDto) {
-    if (Object.keys(param).length) {
-      return this.problemService.searchProblem(param);
-    } else {
-      return this.problemService.getAllProblem();
-    }
+  // @UsePipes(ValidationPipe)
+  async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
+    return await this.problemService.getAllProblem();
+    // if (Object.keys(param).length) {
+    //   return this.problemService.searchProblem(param);
+    // } else {
+    // }
   }
 
   @Put('/:id')
@@ -51,7 +52,7 @@ export class ProblemController {
   }
 
   @Delete('/:id')
-  deleteProblem(@Param('id') id: string) {
+  deleteProblem(@Param('id') id: string): Promise<Problem> {
     return this.problemService.deleteProblem(id);
   }
 }
