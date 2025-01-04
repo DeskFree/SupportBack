@@ -19,13 +19,13 @@ export class Problem {
   tags: string;
 
   @Prop()
-  votes: string;
+  votes: number;
 
   @Prop()
-  views: string;
+  views: number;
 
   @Prop()
-  answerCount: string;
+  answerCount: number;
 
   @Prop()
   status: ProblemStatus;
