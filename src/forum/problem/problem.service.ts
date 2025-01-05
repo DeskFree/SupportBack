@@ -37,8 +37,8 @@ export class ProblemService {
     let problems = await this.problemRepository.getAllProblems();
     return problems;
   }
-  getProblem(id: string): Problem[] {
-    let problems = null;
+  async getProblem(id: string): Promise<Problem> {
+    let problems = await this.problemRepository.getProgram(id);
     return problems;
   }
 

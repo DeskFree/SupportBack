@@ -17,6 +17,10 @@ export class ProblemRepository {
     return await this.problemModel.find();
   }
 
+  async getProgram(id: string): Promise<Problem> {
+    return await this.problemModel.findById(id);
+  }
+
   async updateProblem(updatedProblem: UpdateProblemDto): Promise<Problem> {
     return await this.problemModel.findByIdAndUpdate(
       updatedProblem.id,
@@ -24,7 +28,7 @@ export class ProblemRepository {
       { returnDocument: 'after' },
     );
   }
-  async deleteProblem(id:string): Promise<Problem> {
+  async deleteProblem(id: string): Promise<Problem> {
     return await this.problemModel.findByIdAndDelete(id);
   }
   async searchProblem(filter: Record<string, any>): Promise<Problem[]> {

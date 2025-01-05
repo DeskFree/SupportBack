@@ -23,12 +23,12 @@ export class ProblemController {
 
   @Post()
   @UsePipes(ValidationPipe)
-  async createProblem(@Body() newProblem: CreateProblemDto) {
+  async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
     return await this.problemService.createProblem(newProblem);
   }
 
   @Get()
-  @UsePipes(new ForumProblemUpdateValidatorPipe)
+  @UsePipes(new ForumProblemUpdateValidatorPipe())
   async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
     if (Object.keys(param).length) {
       return this.problemService.searchProblem(param);
@@ -41,13 +41,13 @@ export class ProblemController {
   updateProblem(
     @Param('id') id: string,
     @Body() updatedProblem: UpdateProblemDto,
-  ) {
+  ): Promise<Problem> {
     updatedProblem.id = id;
     return this.problemService.updateProblem(updatedProblem);
   }
 
   @Get('/:id')
-  getProblem(@Param('id') id: string) {
+  getProblem(@Param('id') id: string): Promise<Problem> {
     return this.problemService.getProblem(id);
   }
 
