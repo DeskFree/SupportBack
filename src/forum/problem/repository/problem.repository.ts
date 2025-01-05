@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Problem, ProblemDocument } from '../schemas/problem.schema';
 import { Model } from 'mongoose';
-import { CreateProblemDto } from '../dtos/create-problem.dto';
-import { UpdateProblemDto } from '../dtos/update-problem.Dto';
+import { CreateProblemDto } from '../dto/create-problem.dto';
+import { UpdateProblemDto } from '../dto/update-problem.Dto';
 
 @Injectable()
 export class ProblemRepository {

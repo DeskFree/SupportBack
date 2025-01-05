@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { SearchProblemDto } from './dtos/search-problem.dto';
+import { SearchProblemDto } from './dto/search-problem.dto';
 import { Problem } from './schemas/problem.schema';
-import { CreateProblemDto } from './dtos/create-problem.dto';
-import { UpdateProblemDto } from './dtos/update-problem.Dto';
+import { CreateProblemDto } from './dto/create-problem.dto';
+import { UpdateProblemDto } from './dto/update-problem.Dto';
 import { ProblemRepository } from './repository/problem.repository';
 
 @Injectable()

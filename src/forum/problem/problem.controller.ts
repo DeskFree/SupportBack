@@ -11,10 +11,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
-import { SearchProblemDto } from './dtos/search-problem.dto';
-import { CreateProblemDto } from './dtos/create-problem.dto';
-import { UpdateProblemDto } from './dtos/update-problem.Dto';
-import { ForumProblemStatusValidatorPipe } from './pipes/forum-problem-status-validator.pipe';
+import { SearchProblemDto } from './dto/search-problem.dto';
+import { CreateProblemDto } from './dto/create-problem.dto';
+import { UpdateProblemDto } from './dto/update-problem.Dto';
+import { ForumProblemUpdateValidatorPipe } from './pipes/forum-problem-update-validator.pipe';
 import { Problem } from './schemas/problem.schema';
 
 @Controller('forum/problem')
@@ -28,7 +28,7 @@ export class ProblemController {
   }
 
   @Get()
-  // @UsePipes(ValidationPipe)
+  @UsePipes(new ForumProblemUpdateValidatorPipe)
   async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
     if (Object.keys(param).length) {
       return this.problemService.searchProblem(param);
