@@ -12,7 +12,15 @@ export class TagService {
     return this.tagRepository.createTag(newTag);
   }
 
-  updateTag(updatedTag:UpdateTagDto):Promise <Tag>{
-    return this.tagRepository.updateTag(updatedTag)
+  updateTag(updatedTag: UpdateTagDto): Promise<Tag> {
+    return this.tagRepository.updateTag(updatedTag);
+  }
+
+  deleteTag(id: mongoose.Schema.Types.ObjectId): Promise<Tag> {
+    return this.tagRepository.deleteTag(id);
+  }
+
+  getAllTags(): Promise<Tag[]> {
+    return this.tagRepository.getAllTags();
   }
 }
