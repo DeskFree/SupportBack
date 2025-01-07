@@ -10,13 +10,13 @@ export class Log {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   userId: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: LogActions, required: true })
+  @Prop({ type: String, required: true })
   action: LogActions;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, refPath: 'targetModel', required: false })
   targetId: mongoose.Schema.Types.ObjectId; 
 
-  @Prop({ type: targetModels, required: false })
+  @Prop({ type: String, required: false })
   targetModel: targetModels; 
 
   @Prop({ type: String, required: false })
