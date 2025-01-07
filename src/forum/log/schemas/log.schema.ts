@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { LogActions } from '../enum/log-actions.enum';
+import { targetModels } from '../enum/log-models.enum';
 
 export type LogDocument = Log & Document;
 
@@ -8,20 +10,17 @@ export class Log {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   userId: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: String, required: true })
-  action: string; 
+  @Prop({ type: LogActions, required: true })
+  action: LogActions;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, refPath: 'targetModel', required: false })
   targetId: mongoose.Schema.Types.ObjectId; 
 
-  @Prop({ type: String, required: false })
-  targetModel: string; 
+  @Prop({ type: targetModels, required: false })
+  targetModel: targetModels; 
 
   @Prop({ type: String, required: false })
-  details: string; 
-
-  @Prop({ type: Date, default: Date.now })
-  createdAt: Date;
+  details: string;
 }
 
 export const LogSchema = SchemaFactory.createForClass(Log);
