@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { ProblemStatus } from '../enums/status.enum';
 
 export class UpdateProblemDto {

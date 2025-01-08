@@ -14,21 +14,22 @@ import { ProblemService } from './problem.service';
 import { SearchProblemDto } from './dto/search-problem.dto';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.Dto';
-import { ForumProblemUpdateValidatorPipe } from './pipes/forum-problem-update-validator.pipe';
 import { Problem } from './schemas/problem.schema';
+import { ProblemValidator } from '../pipes/problem-validator.pipe';
 
 @Controller('forum/problem')
 export class ProblemController {
+
   constructor(private readonly problemService: ProblemService) {}
 
   @Post()
-  @UsePipes(ValidationPipe)
+  @UsePipes(new ProblemValidator)
   async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
     return await this.problemService.createProblem(newProblem);
   }
 
   @Get()
-  @UsePipes(new ForumProblemUpdateValidatorPipe())
+  @UsePipes(new ProblemValidator)
   async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
     if (Object.keys(param).length) {
       return this.problemService.searchProblem(param);
@@ -38,11 +39,10 @@ export class ProblemController {
   }
 
   @Put('/:id')
+  @UsePipes(new ProblemValidator)
   updateProblem(
-    @Param('id') id: string,
     @Body() updatedProblem: UpdateProblemDto,
   ): Promise<Problem> {
-    updatedProblem.id = id;
     return this.problemService.updateProblem(updatedProblem);
   }
 

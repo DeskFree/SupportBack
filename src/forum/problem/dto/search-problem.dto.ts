@@ -1,10 +1,12 @@
-import { IsIn } from 'class-validator';
+import { IsIn, IsNotEmpty, ValidationArguments } from 'class-validator';
 import { ProblemStatus } from '../enums/status.enum';
+import { Transform } from 'class-transformer';
 
 export class SearchProblemDto {
+
   title: string
+
   tags: string
 
-  @IsIn(Object.values(ProblemStatus))
   status: ProblemStatus
 }
