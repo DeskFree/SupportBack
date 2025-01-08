@@ -6,28 +6,28 @@ export type ProblemDocument = Problem & Document;
 
 @Schema({ timestamps: true })
 export class Problem {
-  @Prop()
+  @Prop({ type: String, required: true })
   title: string;
 
-  @Prop()
+  @Prop({ type: String, required: true })
   details: string;
 
-  @Prop()
+  @Prop({ type: String, required: false })
   tryAndExpect: string;
 
-  @Prop()
+  @Prop({ type: String, required: false })
   tags: string;
 
-  @Prop()
+  @Prop({ type: Number, default: 0 })
   votes: number;
 
-  @Prop()
+  @Prop({ type: Number, default: 0 })
   views: number;
 
-  @Prop()
+  @Prop({ type: Number, default: 0 })
   answerCount: number;
 
-  @Prop()
+  @Prop({ type: String, required: false })
   status: ProblemStatus;
 }
 

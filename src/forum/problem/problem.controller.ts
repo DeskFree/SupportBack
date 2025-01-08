@@ -1,12 +1,15 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   Post,
   Put,
   Query,
+  Res,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -16,20 +19,34 @@ import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.Dto';
 import { Problem } from './schemas/problem.schema';
 import { ProblemValidator } from '../pipes/problem-validator.pipe';
+import { ValidationError } from 'class-validator';
+import { DatabaseException } from 'src/exceptions/database.exception';
 
 @Controller('forum/problem')
 export class ProblemController {
-
   constructor(private readonly problemService: ProblemService) {}
 
   @Post()
-  @UsePipes(new ProblemValidator)
+  @UsePipes(new ProblemValidator())
   async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
-    return await this.problemService.createProblem(newProblem);
+    try {
+      return await this.problemService.createProblem(newProblem);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw new BadRequestException('Validation failed for the input data.');
+      }
+
+      if (error instanceof DatabaseException) {
+        throw new DatabaseException('Database operation failed.');
+      }
+
+      console.error('Error creating problem:', error);
+      throw new InternalServerErrorException('An unexpected error occurred.');
+    }
   }
 
   @Get()
-  @UsePipes(new ProblemValidator)
+  @UsePipes(new ProblemValidator())
   async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
     if (Object.keys(param).length) {
       return this.problemService.searchProblem(param);
@@ -39,10 +56,8 @@ export class ProblemController {
   }
 
   @Put('/:id')
-  @UsePipes(new ProblemValidator)
-  updateProblem(
-    @Body() updatedProblem: UpdateProblemDto,
-  ): Promise<Problem> {
+  @UsePipes(new ProblemValidator())
+  updateProblem(@Body() updatedProblem: UpdateProblemDto): Promise<Problem> {
     return this.problemService.updateProblem(updatedProblem);
   }
 

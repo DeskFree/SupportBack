@@ -7,12 +7,15 @@ import { UpdateProblemDto } from '../dto/update-problem.Dto';
 
 @Injectable()
 export class ProblemRepository {
+
   constructor(
     @InjectModel(Problem.name) private problemModel: Model<ProblemDocument>,
   ) {}
+
   async createProblem(newProblem: CreateProblemDto): Promise<Problem> {
     return await new this.problemModel(newProblem).save();
   }
+
   async getAllProblems(): Promise<Problem[]> {
     return await this.problemModel.find();
   }
@@ -28,10 +31,13 @@ export class ProblemRepository {
       { returnDocument: 'after' },
     );
   }
+
   async deleteProblem(id: string): Promise<Problem> {
     return await this.problemModel.findByIdAndDelete(id);
   }
+
   async searchProblem(filter: Record<string, any>): Promise<Problem[]> {
     return await this.problemModel.find(filter);
   }
+  
 }
