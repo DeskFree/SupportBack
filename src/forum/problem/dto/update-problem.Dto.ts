@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { ProblemStatus } from '../enums/status.enum';
 import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 

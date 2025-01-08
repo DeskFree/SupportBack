@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { CreateProblemDto } from '../problem/dto/create-problem.dto';
-import { UpdateProblemDto } from '../problem/dto/update-problem.dto';
 import { ProblemStatus } from '../problem/enums/status.enum';
 
 @Injectable()

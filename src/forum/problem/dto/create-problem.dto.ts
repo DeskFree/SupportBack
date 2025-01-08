@@ -1,6 +1,5 @@
 import { IsNotEmpty, NotEquals, IsIn, ValidationArguments, IsString } from 'class-validator';
 import { ProblemStatus } from '../enums/status.enum';
-import { Transform } from 'class-transformer';
 
 export class CreateProblemDto {
   @IsString()
