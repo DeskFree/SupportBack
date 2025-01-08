@@ -4,14 +4,36 @@ import { Problem } from './schemas/problem.schema';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.Dto';
 import { ProblemRepository } from './repository/problem.repository';
+import { LogService } from '../log/log.service';
+import { LogActions } from '../log/enum/log-actions.enum';
+import { targetModels } from '../log/enum/log-models.enum';
 
 @Injectable()
 export class ProblemService {
-  constructor(private problemRepository: ProblemRepository) {}
+  constructor(
+    private problemRepository: ProblemRepository,
+    private readonly logService: LogService,
+  ) {}
 
   async createProblem(newProblem: CreateProblemDto): Promise<Problem> {
-    const problem = await this.problemRepository.createProblem(newProblem);
-    return problem;
+    newProblem.createdBy = 'AD';
+
+    try {
+      const problem = await this.problemRepository.createProblem(newProblem);
+
+      const log = await this.logService.createLog({
+        userId: problem.createdBy,
+        action: LogActions.CREATE,
+        details: `Problem created with ID: ${JSON.parse(JSON.stringify(problem)).id}`,
+        targetId: JSON.parse(JSON.stringify(problem)).id,
+        targetModel: targetModels.PROBLEM,
+      });
+
+      return problem;
+
+    } catch (error) {
+      throw new Error(`Failed to create problem: ${error.message}`);
+    }
   }
 
   async updateProblem(updatedProblem: UpdateProblemDto): Promise<Problem> {
@@ -20,12 +42,10 @@ export class ProblemService {
   }
 
   async searchProblem(searchProblemDto: SearchProblemDto): Promise<Problem[]> {
-    const { title, tags, status } = searchProblemDto;
+    const { title, status } = searchProblemDto;
     let filter: any = {};
     if (title) {
       filter.title = title;
-    } else if (tags) {
-      filter.tags = tags;
     } else if (status) {
       filter.status = status.toLocaleUpperCase();
     }

@@ -1,4 +1,11 @@
-import { IsNotEmpty, NotEquals, IsIn, ValidationArguments, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  NotEquals,
+  IsIn,
+  ValidationArguments,
+  IsString,
+  IsEmpty,
+} from 'class-validator';
 import { ProblemStatus } from '../enums/status.enum';
 
 export class CreateProblemDto {
@@ -15,4 +22,7 @@ export class CreateProblemDto {
   tags: string;
   @NotEquals('CLOSE')
   status: ProblemStatus;
+
+  @IsEmpty()
+  createdBy: string;
 }

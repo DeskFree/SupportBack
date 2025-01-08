@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import { ProblemStatus } from '../enums/status.enum';
 
 export type ProblemDocument = Problem & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true , toJSON: { virtuals: true } })
 export class Problem {
   @Prop({ type: String, required: true })
   title: string;
@@ -29,6 +29,15 @@ export class Problem {
 
   @Prop({ type: String, required: false })
   status: ProblemStatus;
+
+  @Prop({type:String,required:true})
+  createdBy:mongoose.Schema.Types.ObjectId;
+  
 }
 
-export const ProblemnSchema = SchemaFactory.createForClass(Problem);
+export const ProblemSchema = SchemaFactory.createForClass(Problem);
+
+// Automatically create a virtual `id` field from `_id`
+ProblemSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
