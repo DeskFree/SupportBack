@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ForumModule } from './forum/forum.module';
 import * as dotenv from 'dotenv';
 import { NotificationModule } from './notifications/notifications.module';
+import { EmailService } from './email/email.service';
 dotenv.config();
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -32,6 +33,6 @@ console.log('MONGO_URI:', process.env.MONGO_URI);
     ForumModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, EmailService],
 })
 export class AppModule {}
