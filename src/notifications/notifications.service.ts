@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { v1 as uuid } from 'uuid';
 import { Notification, NotificationType } from './Notification.model';
+import { NotificationSearchDto } from './NotificationSearch.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -29,4 +30,14 @@ export class NotificationsService {
     this.notifications.push(notification);
     return notification;
   }
+
+  notificationSearch(notificaionSearchDto:NotificationSearchDto){
+    const {title,message} = notificaionSearchDto;
+    let notifications = this.getAllNotifications();
+    notifications = notifications.filter(notification => {notification.title === title});
+    notifications = notifications.filter(notification => {notification.message === message});
+
+    return notifications;
+  }
+
 }
