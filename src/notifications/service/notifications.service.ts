@@ -1,7 +1,8 @@
 // src/notifications/services/notification.service.ts
 import { Injectable } from '@nestjs/common';
-import { NotificationRepository } from '../repository/notification.repository';
+import { UserRole } from '../schemas/notification.schema';
 import { CreateNotificationDto } from '../dto/notificationCreateDto';
+import { NotificationRepository } from '../repository/notification.repository';
 
 @Injectable()
 export class NotificationService {
@@ -11,11 +12,15 @@ export class NotificationService {
     return this.notificationRepository.create(createNotificationDto);
   }
 
-  async getNotificationsByUserId(userId: string) {
-    return this.notificationRepository.findAllByUserId(userId);
+  async getNotificationsByUserIdAndRole(userId: string, userRole: UserRole) {
+    return this.notificationRepository.findAllByUserIdAndRole(userId, userRole);
   }
 
   async markNotificationAsRead(notificationId: string) {
     return this.notificationRepository.markAsRead(notificationId);
+  }
+
+  async readAllNotifications(){
+    return await this.notificationRepository.read()
   }
 }
