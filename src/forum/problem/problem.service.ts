@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SearchProblemDto } from './dto/search-problem.dto';
 import { Problem } from './schemas/problem.schema';
 import { CreateProblemDto } from './dto/create-problem.dto';
@@ -12,6 +16,9 @@ import { DuplicateProblemException } from '../../exceptions/duplicate-problem.ex
 import { LogFailureException } from '../../exceptions/log-failure.exception';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
 import { error } from 'console';
+import { Counts } from './enums/counts.enum';
+import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
+import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 
 @Injectable()
 export class ProblemService {
@@ -29,7 +36,7 @@ export class ProblemService {
       'create_problem',
     );
     if (isRateLimited) {
-      throw new BadRequestException(
+      throw new TooManyRequestsException(
         'You are creating problems too quickly. Please wait and try again.',
       );
     }
@@ -152,25 +159,21 @@ export class ProblemService {
     return problems;
   }
 
-  async addSolution(id:string,solutionId:string):Promise <boolean> {
-    const problem = this.problemRepository.addSolution(id,solutionId)
-    return !!problem
+  async addSolution(id: string, solutionId: string): Promise<boolean> {
+    const problem = this.problemRepository.addSolution(id, solutionId);
+    this.changeCounts(id,true,Counts.SOLUTION_COUNT)
+    return !!problem;
   }
 
-  async removeSolution(id:string,solutionId:string):Promise <boolean> {
-    const problem = this.problemRepository.removeSolution(id,solutionId)
-    return !!problem
-  }
-
-  async getProblem(id: string): Promise<Problem> {
-    const problem = await this.problemRepository.getProblem(id);
-    
-    return problem;
+  async removeSolution(id: string, solutionId: string): Promise<boolean> {
+    const problem = this.problemRepository.removeSolution(id, solutionId);
+    this.changeCounts(id,false,Counts.SOLUTION_COUNT)
+    return !!problem;
   }
 
   async getProblemWithSolutions(id: string): Promise<Problem> {
     const problem = await this.problemRepository.getProblemWithSolutions(id);
-    
+    this.changeCounts(id,true,Counts.VIEWS)
     return problem;
   }
 
@@ -215,6 +218,54 @@ export class ProblemService {
         throw error;
       });
 
+    // need to delete all solutions related to this problem
+
+    return problem;
+  }
+
+  private changeCounts(
+    problemId: string,
+    isIncrease: boolean,
+    countType: Counts,
+  ) {
+    let count: number;
+    const problem = this.getProblem(problemId)
+      .then(async (problem) => {
+        const multiplier = isIncrease ? 1 : -1;
+        switch (countType) {
+          case Counts.VOTES:
+            count = problem.votes + multiplier;
+            break;
+          case Counts.VIEWS:
+            count = problem.views + multiplier;
+            break;
+          case Counts.SOLUTION_COUNT:
+            count = problem.solutionCount + multiplier;
+            break;
+          default:
+            throw new BadRequestException(`${countType} is Invalid Count Type`);
+            break;
+        }
+        const newCount: UpdateProblemCountsDto = {
+          problemId,
+          countType,
+          count,
+        };
+        await this.problemRepository.updateCounts(newCount).catch((error) => {
+          const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
+          console.log(errorMsg);
+          throw new BadRequestException(errorMsg);
+        });
+      })
+      .catch((error) => {
+          const errorMsg = `Failed to fetch '${problemId}' problem from database : ${error.message}`
+          console.log(errorMsg);
+          throw new NotFoundException(errorMsg);
+      });
+  }
+
+  private async getProblem(id: string): Promise<Problem> {
+    const problem = await this.problemRepository.getProblem(id);
     return problem;
   }
 

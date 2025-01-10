@@ -25,7 +25,7 @@ export class CreateProblemDto {
   votes: number;
 
   @Equals(0)
-  answerCount: number;
+  solutionCount: number;
 
   @Equals(0)
   views: number;

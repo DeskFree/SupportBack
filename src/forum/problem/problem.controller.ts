@@ -59,7 +59,7 @@ export class ProblemController {
 
   @Get('/:id')
   getProblem(@Param('id') id: string): Promise<Problem> {
-    return this.problemService.getProblem(id);
+    return this.problemService.getProblemWithSolutions(id);
   }
 
   @Delete('/:id')

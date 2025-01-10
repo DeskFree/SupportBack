@@ -25,7 +25,7 @@ export class Problem {
   views: number;
 
   @Prop({ type: Number, default: 0 })
-  answerCount: number;
+  solutionCount: number;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Solution' }] })
   solutions: Types.ObjectId[];

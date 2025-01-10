@@ -4,6 +4,7 @@ import { Problem, ProblemDocument } from '../schemas/problem.schema';
 import { Model } from 'mongoose';
 import { CreateProblemDto } from '../dto/create-problem.dto';
 import { UpdateProblemDto } from '../dto/update-problem.Dto';
+import { UpdateProblemCountsDto } from '../dto/update-problem-counts.dto';
 
 @Injectable()
 export class ProblemRepository {
@@ -49,6 +50,15 @@ export class ProblemRepository {
   async updateProblem(updatedProblem: UpdateProblemDto): Promise<Problem> {
     return await this.problemModel
       .findByIdAndUpdate(updatedProblem.id, updatedProblem, {
+        returnDocument: 'after',
+      })
+      .exec();
+  }
+
+  async updateCounts(newCount: UpdateProblemCountsDto): Promise<Problem> {
+    const query = { [newCount.countType] : newCount.count }
+    return await this.problemModel
+      .findByIdAndUpdate(newCount.problemId, {
         returnDocument: 'after',
       })
       .exec();
