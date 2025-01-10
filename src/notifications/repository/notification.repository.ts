@@ -19,7 +19,7 @@ export class NotificationRepository {
   }
 
   async read():Promise<Notification[]>{
-    return this.notificationModel.find().exec()
+    return this.notificationModel.find()
   }
 
   async findAllByUserIdAndRole(userId: string, userRole: UserRole): Promise<Notification[]> {
