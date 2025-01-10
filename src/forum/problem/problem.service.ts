@@ -80,12 +80,20 @@ export class ProblemService {
     return problem;
   }
 
-  async updateProblem(updatedProblem: UpdateProblemDto): Promise<Problem> {
+  async updateProblem(
+    id: string,
+    updatedProblem: UpdateProblemDto,
+  ): Promise<Problem> {
+
+    updatedProblem.id = id;
+    
     const userId: any = '6781080039c7df8d42da6ecd';
 
     const originalProblem = await this.problemRepository.getProgram(
       updatedProblem.id,
     );
+
+    console.log(originalProblem);
 
     if (originalProblem.createdBy !== userId) {
       throw new BadRequestException(
@@ -118,6 +126,16 @@ export class ProblemService {
               });
           });
         return problem;
+      })
+      .catch(async (error) => {
+        await this.logService.createLog({
+          userId: userId,
+          action: LogActions.UPDATE,
+          details: `Failed to update the problem: ${error.message}`,
+          isSuccess: false,
+          targetModel: targetModels.PROBLEM,
+        });
+        throw error;
       });
 
     return problem;

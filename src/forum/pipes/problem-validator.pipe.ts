@@ -7,11 +7,24 @@ import {
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { ProblemStatus } from '../problem/enums/status.enum';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ProblemValidator implements PipeTransform {
   transform(value: any, metadata: ArgumentMetadata) {
-    return this.validateDto(value, metadata.metatype);
+    if (metadata.type === 'param') {
+      return this.validateId(value);
+    }
+    if (metadata.type === 'body') {
+      return this.validateDto(value, metadata.metatype);
+    }
+  }
+  
+  private validateId(id: string): string {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Invalid ID format: '${id}'`);
+    }
+    return id;
   }
 
   private validateDto(value: any, dtoClass: any):any {

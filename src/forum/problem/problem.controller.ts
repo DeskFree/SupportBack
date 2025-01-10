@@ -53,8 +53,8 @@ export class ProblemController {
 
   @Put('/:id')
   @UsePipes(new ProblemValidator())
-  updateProblem(@Body() updatedProblem: UpdateProblemDto): Promise<Problem> {
-    return this.problemService.updateProblem(updatedProblem);
+  updateProblem(@Param('id') id:string,@Body() updatedProblem: UpdateProblemDto): Promise<Problem> {
+    return this.problemService.updateProblem(id,updatedProblem);
   }
 
   @Get('/:id')
