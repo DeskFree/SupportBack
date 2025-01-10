@@ -1,12 +1,12 @@
 import {
   IsNotEmpty,
   NotEquals,
-  IsIn,
-  ValidationArguments,
   IsString,
   IsEmpty,
+  Equals,
 } from 'class-validator';
 import { ProblemStatus } from '../enums/status.enum';
+import { Types } from 'mongoose';
 
 export class CreateProblemDto {
   @IsString()
@@ -20,6 +20,18 @@ export class CreateProblemDto {
   tryAndExpect: string;
 
   tags: string;
+
+  @Equals(0)
+  votes: number;
+
+  @Equals(0)
+  answerCount: number;
+
+  @Equals(0)
+  views: number;
+
+  @IsEmpty()
+  solutions: Types.ObjectId;
 
   @IsNotEmpty()
   @NotEquals('CLOSE')

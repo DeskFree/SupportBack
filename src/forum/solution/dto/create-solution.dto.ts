@@ -1,15 +1,15 @@
 import { IsNotEmpty } from "class-validator";
-import mongoose from "mongoose";
+import { Types } from "mongoose";
 
 export class CreateSolutionDto {
   @IsNotEmpty()
-  problemId: mongoose.Schema.Types.ObjectId;
+  problemId: Types.ObjectId;
   @IsNotEmpty()
   details: string;
 
   votes: number;
   @IsNotEmpty()
-  createdBy: mongoose.Schema.Types.ObjectId;
+  createdBy: Types.ObjectId;
 
   isAccepted: boolean;
 }

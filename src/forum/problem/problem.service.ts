@@ -11,6 +11,7 @@ import mongoose from 'mongoose';
 import { DuplicateProblemException } from '../../exceptions/duplicate-problem.exception';
 import { LogFailureException } from '../../exceptions/log-failure.exception';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
+import { error } from 'console';
 
 @Injectable()
 export class ProblemService {
@@ -84,16 +85,13 @@ export class ProblemService {
     id: string,
     updatedProblem: UpdateProblemDto,
   ): Promise<Problem> {
-
     updatedProblem.id = id;
-    
+
     const userId: any = '6781080039c7df8d42da6ecd';
 
-    const originalProblem = await this.problemRepository.getProgram(
+    const originalProblem = await this.problemRepository.getProblem(
       updatedProblem.id,
     );
-
-    console.log(originalProblem);
 
     if (originalProblem.createdBy !== userId) {
       throw new BadRequestException(
@@ -112,15 +110,8 @@ export class ProblemService {
             targetModel: targetModels.PROBLEM,
           })
           .catch(async (error) => {
-            const rollbackData: UpdateProblemDto = {
-              id: this.getProblemId(originalProblem),
-              title: originalProblem.title,
-              tryAndExpect: originalProblem.tryAndExpect,
-              details: originalProblem.details,
-              status: originalProblem.status,
-            };
             await this.problemRepository
-              .updateProblem(rollbackData)
+              .rollBackProblem(problem)
               .catch((rollbackError) => {
                 console.error('Rollback failed:', rollbackError);
               });
@@ -161,39 +152,70 @@ export class ProblemService {
     return problems;
   }
 
+  async addSolution(id:string,solutionId:string):Promise <boolean> {
+    const problem = this.problemRepository.addSolution(id,solutionId)
+    return !!problem
+  }
+
+  async removeSolution(id:string,solutionId:string):Promise <boolean> {
+    const problem = this.problemRepository.removeSolution(id,solutionId)
+    return !!problem
+  }
+
   async getProblem(id: string): Promise<Problem> {
-    const problem = await this.problemRepository.getProgram(id);
-    if (!problem) {
-      throw new BadRequestException('Problem not found');
-    }
+    const problem = await this.problemRepository.getProblem(id);
+    
+    return problem;
+  }
+
+  async getProblemWithSolutions(id: string): Promise<Problem> {
+    const problem = await this.problemRepository.getProblemWithSolutions(id);
+    
     return problem;
   }
 
   async deleteProblem(id: string): Promise<Problem> {
-    const user: mongoose.Schema.Types.ObjectId = null;
+    const userId: any = '6781080039c7df8d42da6ecd';
 
-    const problem = await this.problemRepository.deleteProblem(id);
+    const originalProblem = await this.problemRepository.getProblem(id);
 
-    // Log the deletion
-    await this.logService.createLog({
-      userId: user,
-      action: LogActions.DELETE,
-      targetId: this.getProblemId(problem),
-      targetModel: targetModels.PROBLEM,
-    });
-
-    return problem;
-  }
-
-  private async handleRollback(problemId: string): Promise<void> {
-    try {
-      await this.problemRepository.deleteProblem(problemId);
-    } catch (rollbackError) {
-      console.error(
-        `Rollback failed for problem ID: ${problemId}`,
-        rollbackError,
+    if (originalProblem.createdBy !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to update this problem.',
       );
     }
+
+    const problem = await this.problemRepository
+      .deleteProblem(id)
+      .then(async (problem) => {
+        await this.logService
+          .createLog({
+            userId: userId,
+            action: LogActions.DELETE,
+            targetId: this.getProblemId(problem),
+            targetModel: targetModels.PROBLEM,
+          })
+          .catch(async (error) => {
+            this.problemRepository
+              .rollBackProblem(problem)
+              .catch((rollbackError) => {
+                console.error('Rollback failed:', rollbackError);
+              });
+          });
+        return problem;
+      })
+      .catch(async (error) => {
+        await this.logService.createLog({
+          userId: userId,
+          action: LogActions.DELETE,
+          details: `Failed to delete the problem: ${error.message}`,
+          isSuccess: false,
+          targetModel: targetModels.PROBLEM,
+        });
+        throw error;
+      });
+
+    return problem;
   }
 
   private getProblemId(problem: Problem): any {

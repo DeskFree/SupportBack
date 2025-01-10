@@ -7,7 +7,6 @@ import { UpdateProblemDto } from '../dto/update-problem.Dto';
 
 @Injectable()
 export class ProblemRepository {
-
   constructor(
     @InjectModel(Problem.name) private problemModel: Model<ProblemDocument>,
   ) {}
@@ -16,20 +15,43 @@ export class ProblemRepository {
     return await new this.problemModel(newProblem).save();
   }
 
+  async rollBackProblem(newProblem: Problem): Promise<Problem> {
+    return await new this.problemModel(newProblem).save();
+  }
+
   async getAllProblems(): Promise<Problem[]> {
     return await this.problemModel.find().exec();
   }
 
-  async getProgram(id: string): Promise<Problem> {
+  async getProblem(id: string): Promise<Problem> {
     return await this.problemModel.findById(id).exec();
   }
 
+  async addSolution(problemId: string, solutionId: string):Promise <void> {
+    await this.problemModel.findByIdAndUpdate(
+      problemId,
+      { $push: { solutions: solutionId } },
+      { new: true },
+    );
+  }
+  async removeSolution(problemId: string, solutionId: string):Promise <void> {
+    await this.problemModel.findByIdAndUpdate(
+      problemId,
+      { $pull: { solutions: solutionId } },
+      { new: true },
+    );
+  }
+
+  async getProblemWithSolutions(id: string): Promise<Problem> {
+    return await this.problemModel.findById(id).populate('solutions').exec();
+  }
+
   async updateProblem(updatedProblem: UpdateProblemDto): Promise<Problem> {
-    return await this.problemModel.findByIdAndUpdate(
-      updatedProblem.id,
-      updatedProblem,
-      { returnDocument: 'after' },
-    ).exec();
+    return await this.problemModel
+      .findByIdAndUpdate(updatedProblem.id, updatedProblem, {
+        returnDocument: 'after',
+      })
+      .exec();
   }
 
   async deleteProblem(id: string): Promise<Problem> {
@@ -39,5 +61,4 @@ export class ProblemRepository {
   async searchProblem(filter: Record<string, any>): Promise<Problem[]> {
     return await this.problemModel.find(filter).exec();
   }
-  
 }
