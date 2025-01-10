@@ -13,11 +13,18 @@ export class Log {
   @Prop({ type: String, required: true })
   action: LogActions;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, refPath: 'targetModel', required: false })
-  targetId: mongoose.Schema.Types.ObjectId; 
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: 'targetModel',
+    required: false,
+  })
+  targetId: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: String, required: false })
-  targetModel: targetModels; 
+  targetModel: targetModels;
+
+  @Prop({ type: Boolean, required: false, default: true })
+  isSuccess: boolean;
 
   @Prop({ type: String, required: false })
   details: string;

@@ -4,7 +4,6 @@ import { Log } from './schemas/log.schema';
 import { LogRepository } from './repository/log.repository';
 import { CreateLogDto } from './dto/create-log.dto';
 import { targetModels } from './enum/log-models.enum';
-import { LogModule } from './log.module';
 
 @Injectable()
 export class LogService {

@@ -21,27 +21,23 @@ import { Problem } from './schemas/problem.schema';
 import { ProblemValidator } from '../pipes/problem-validator.pipe';
 import { ValidationError } from 'class-validator';
 import { DatabaseException } from 'src/exceptions/database.exception';
+import { LogFailureException } from 'src/exceptions/log-failure.exception';
+import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
 
 @Controller('forum/problem')
 export class ProblemController {
   constructor(private readonly problemService: ProblemService) {}
 
   @Post()
-  @UsePipes(new ProblemValidator())
+  @UsePipes(new ProblemValidator)
   async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
     try {
       return await this.problemService.createProblem(newProblem);
     } catch (error) {
-      if (error instanceof ValidationError) {
-        throw new BadRequestException('Validation failed for the input data.');
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
       }
-
-      if (error instanceof DatabaseException) {
-        throw new DatabaseException('Database operation failed.');
-      }
-
-      console.error('Error creating problem:', error);
-      throw new InternalServerErrorException('An unexpected error occurred.');
+      throw error;
     }
   }
 

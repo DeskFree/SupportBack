@@ -20,6 +20,8 @@ export class CreateProblemDto {
   tryAndExpect: string;
 
   tags: string;
+
+  @IsNotEmpty()
   @NotEquals('CLOSE')
   status: ProblemStatus;
 

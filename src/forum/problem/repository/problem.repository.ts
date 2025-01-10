@@ -17,11 +17,11 @@ export class ProblemRepository {
   }
 
   async getAllProblems(): Promise<Problem[]> {
-    return await this.problemModel.find();
+    return await this.problemModel.find().exec();
   }
 
   async getProgram(id: string): Promise<Problem> {
-    return await this.problemModel.findById(id);
+    return await this.problemModel.findById(id).exec();
   }
 
   async updateProblem(updatedProblem: UpdateProblemDto): Promise<Problem> {
@@ -29,15 +29,15 @@ export class ProblemRepository {
       updatedProblem.id,
       updatedProblem,
       { returnDocument: 'after' },
-    );
+    ).exec();
   }
 
   async deleteProblem(id: string): Promise<Problem> {
-    return await this.problemModel.findByIdAndDelete(id);
+    return await this.problemModel.findByIdAndDelete(id).exec();
   }
 
   async searchProblem(filter: Record<string, any>): Promise<Problem[]> {
-    return await this.problemModel.find(filter);
+    return await this.problemModel.find(filter).exec();
   }
   
 }
