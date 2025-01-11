@@ -19,6 +19,7 @@ import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 import { DatabaseException } from 'src/exceptions/database.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
+import { Types } from 'mongoose';
 
 /**
  * Service class for managing Problem entities.
@@ -50,7 +51,7 @@ export class ProblemService {
    * @throws DatabaseException - If the problem cannot be fetched or updated.
    */
   private changeCounts(
-    problemId: string,
+    problemId: Types.ObjectId,
     isIncrease: boolean,
     countType: Counts,
   ): Promise<boolean> {
@@ -99,7 +100,7 @@ export class ProblemService {
    * @param id - The ID of the problem to retrieve.
    * @returns A Promise that resolves to the retrieved Problem document.
    */
-  private async getProblem(id: string): Promise<Problem> {
+  private async getProblem(id: Types.ObjectId): Promise<Problem> {
     const problem = await this.problemRepository.getProblem(id);
     return problem;
   }
@@ -158,15 +159,15 @@ export class ProblemService {
           .createLog({
             userId: problem.createdBy,
             action: LogActions.CREATE,
-            targetId: this.getProblemId(problem),
+            targetId: problem._id,
             targetModel: targetModels.PROBLEM,
           })
           .catch(async (error) => {
             await this.problemRepository
-              .deleteProblem(this.getProblemId(problem))
+              .deleteProblem(problem._id)
               .catch((rollbackError) => {
                 console.error(
-                  `Rollback operation failed for the problem with ID: ${this.getProblemId(problem)}.`,
+                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
                   rollbackError,
                 );
               });
@@ -201,7 +202,7 @@ export class ProblemService {
    * @throws DatabaseException - If the problem cannot be updated.
    */
   async updateProblem(
-    id: string,
+    id: Types.ObjectId,
     updatedProblem: UpdateProblemDto,
   ): Promise<Problem> {
     updatedProblem.id = id;
@@ -225,7 +226,7 @@ export class ProblemService {
           .createLog({
             userId: userId,
             action: LogActions.UPDATE,
-            targetId: this.getProblemId(problem),
+            targetId: problem._id,
             targetModel: targetModels.PROBLEM,
           })
           .catch(async (error) => {
@@ -236,7 +237,7 @@ export class ProblemService {
               )
               .catch((rollbackError) => {
                 console.error(
-                  `Rollback operation failed for the problem with ID: ${this.getProblemId(problem)}.`,
+                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
                   rollbackError,
                 );
               });
@@ -308,7 +309,7 @@ export class ProblemService {
    * @param isUpVote - Whether the vote is an upvote or downvote.
    * @returns A Promise that resolves to a boolean indicating whether the vote was successful.
    */
-  async vote(id: string, isUpVote: boolean): Promise<boolean> {
+  async vote(id: Types.ObjectId, isUpVote: boolean): Promise<boolean> {
     return this.changeCounts(id, isUpVote, Counts.VOTES);
   }
 
@@ -319,7 +320,7 @@ export class ProblemService {
    * @returns A Promise that resolves to a boolean indicating whether the solution was added successfully.
    * @throws DatabaseException - If the solution cannot be added.
    */
-  async addSolution(id: string, solutionId: string): Promise<boolean> {
+  async addSolution(id: Types.ObjectId, solutionId: string): Promise<boolean> {
     const problem = this.problemRepository
       .addSolution(id, solutionId)
       .catch((error) => {
@@ -338,7 +339,7 @@ export class ProblemService {
    * @returns A Promise that resolves to a boolean indicating whether the solution was removed successfully.
    * @throws DatabaseException - If the solution cannot be removed.
    */
-  async removeSolution(id: string, solutionId: string): Promise<boolean> {
+  async removeSolution(id: Types.ObjectId, solutionId: string): Promise<boolean> {
     const problem = this.problemRepository
       .removeSolution(id, solutionId)
       .catch((error) => {
@@ -356,7 +357,7 @@ export class ProblemService {
    * @returns A Promise that resolves to the Problem document with populated solutions.
    * @throws DatabaseException - If the problem cannot be retrieved.
    */
-  async getProblemWithSolutions(id: string): Promise<Problem> {
+  async getProblemWithSolutions(id: Types.ObjectId): Promise<Problem> {
     const problem = await this.problemRepository
       .getProblemWithSolutions(id)
       .catch((error) => {
@@ -376,7 +377,7 @@ export class ProblemService {
    * @throws UnauthorizedAccessException - If the user is not authorized to delete the problem.
    * @throws DatabaseException - If the problem cannot be deleted.
    */
-  async deleteProblem(id: string): Promise<Problem> {
+  async deleteProblem(id:Types.ObjectId): Promise<Problem> {
     const userId: any = this.getUserID();
 
     const originalProblem = await this.problemRepository.getProblem(id);
@@ -400,7 +401,7 @@ export class ProblemService {
           .createLog({
             userId: userId,
             action: LogActions.DELETE,
-            targetId: this.getProblemId(problem),
+            targetId: problem._id,
             targetModel: targetModels.PROBLEM,
           })
           .catch(async (error) => {
@@ -408,7 +409,7 @@ export class ProblemService {
               .rollBackProblem(problem)
               .catch((rollbackError) => {
                 console.error(
-                  `Rollback operation failed for the problem with ID: ${this.getProblemId(problem)}.`,
+                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
                   rollbackError,
                 );
               });

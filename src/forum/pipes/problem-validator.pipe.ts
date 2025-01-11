@@ -12,7 +12,7 @@ import { Types } from 'mongoose';
 @Injectable()
 export class ProblemValidator implements PipeTransform {
   transform(value: any, metadata: ArgumentMetadata) {
-    console.log('metadata', metadata);
+    
     if (metadata.type === 'param') {
       return this.validateId(value);
     }

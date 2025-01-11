@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { LogActions } from '../enum/log-actions.enum';
 
 export class CreateLogDto {
@@ -6,7 +6,7 @@ export class CreateLogDto {
 
   action: LogActions;
 
-  targetId?: string;
+  targetId?: Types.ObjectId;
 
   targetModel: string;
 

@@ -4,8 +4,12 @@ import { ProblemStatus } from '../enums/status.enum';
 
 export type ProblemDocument = Problem & Document;
 
-@Schema({ timestamps: true, toJSON: { virtuals: true } })
+@Schema({ timestamps: true,})
 export class Problem {
+  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId()})
+  _id: Types.ObjectId;
+
+
   @Prop({ type: String, required: true })
   title: string;
 
@@ -38,7 +42,3 @@ export class Problem {
 }
 
 export const ProblemSchema = SchemaFactory.createForClass(Problem);
-
-ProblemSchema.virtual('id').get(function () {
-  return this._id.toHexString();
-});
