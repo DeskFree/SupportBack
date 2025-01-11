@@ -20,21 +20,40 @@ import { TooManyRequestsException } from 'src/exceptions/too-many-requests-excep
 import { DatabaseException } from 'src/exceptions/database.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
 
+/**
+ * Service class for managing Problem entities.
+ * This class provides methods to handle business logic related to Problem operations,
+ * including creation, updating, searching, and deletion of problems.
+ * It also integrates with logging, rate limiting, and other utility services.
+ */
 @Injectable()
 export class ProblemService {
+  /**
+   * Constructs the ProblemService.
+   * @param problemRepository - The repository for interacting with Problem documents in the database.
+   * @param logService - The service for logging actions related to Problem entities.
+   * @param rateLimitService - The service for enforcing rate limits on certain operations.
+   */
   constructor(
     private problemRepository: ProblemRepository,
     private readonly logService: LogService,
     private readonly rateLimitService: RateLimitService,
   ) {}
 
-  
-
+  /**
+   * Updates the count (e.g., votes, views, solution count) of a specific problem.
+   * @param problemId - The ID of the problem to update.
+   * @param isIncrease - Whether to increase or decrease the count.
+   * @param countType - The type of count to update (e.g., VOTES, VIEWS, SOLUTION_COUNT).
+   * @returns A Promise that resolves to a boolean indicating whether the update was successful.
+   * @throws BadRequestException - If the count type is invalid.
+   * @throws DatabaseException - If the problem cannot be fetched or updated.
+   */
   private changeCounts(
     problemId: string,
     isIncrease: boolean,
     countType: Counts,
-  ): Promise <boolean> {
+  ): Promise<boolean> {
     let count: number;
     const problem = this.getProblem(problemId)
       .then(async (problem) => {
@@ -58,11 +77,13 @@ export class ProblemService {
           countType,
           count,
         };
-        const updatedProblem = await this.problemRepository.updateCounts(newCount).catch((error) => {
-          const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
-          console.log(errorMsg);
-          throw new BadRequestException(errorMsg);
-        });
+        const updatedProblem = await this.problemRepository
+          .updateCounts(newCount)
+          .catch((error) => {
+            const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
+            console.log(errorMsg);
+            throw new BadRequestException(errorMsg);
+          });
         return !!updatedProblem;
       })
       .catch((error) => {
@@ -70,22 +91,45 @@ export class ProblemService {
         console.log(errorMsg);
         throw new DatabaseException(errorMsg);
       });
-      return problem;
+    return problem;
   }
 
+  /**
+   * Retrieves a specific Problem document by its ID.
+   * @param id - The ID of the problem to retrieve.
+   * @returns A Promise that resolves to the retrieved Problem document.
+   */
   private async getProblem(id: string): Promise<Problem> {
     const problem = await this.problemRepository.getProblem(id);
     return problem;
   }
 
+  /**
+   * Extracts the ID from a Problem document.
+   * @param problem - The Problem document from which to extract the ID.
+   * @returns The ID of the Problem document.
+   */
   private getProblemId(problem: Problem): any {
     return JSON.parse(JSON.stringify(problem)).id;
   }
 
+  /**
+   * Retrieves the ID of the user who is currently logged in.
+   * @returns The ID of the user who is currently logged in.
+   */
   private getUserID(): string {
-    return '6781080039c7df8d42da6ecd';// Hardcoded for now as we don't have authentication yet
+    return '6781080039c7df8d42da6ecd'; // Hardcoded for now as we don't have authentication yet
   }
 
+  /**
+   * Creates a new Problem document in the database.
+   * @param newProblem - The data transfer object containing the details of the problem to be created.
+   * @returns A Promise that resolves to the created Problem document.
+   * @throws TooManyRequestsException - If the user is rate-limited for creating problems.
+   * @throws DuplicateException - If a problem with a similar title already exists.
+   * @throws LogFailureException - If logging the creation action fails.
+   * @throws DatabaseException - If the problem cannot be created.
+   */
   async createProblem(newProblem: CreateProblemDto): Promise<Problem> {
     const userId = this.getUserID();
 
@@ -148,6 +192,14 @@ export class ProblemService {
     return problem;
   }
 
+  /**
+   * Updates an existing Problem document in the database.
+   * @param id - The ID of the problem to update.
+   * @param updatedProblem - The data transfer object containing the updated details of the problem.
+   * @returns A Promise that resolves to the updated Problem document.
+   * @throws UnauthorizedAccessException - If the user is not authorized to update the problem.
+   * @throws DatabaseException - If the problem cannot be updated.
+   */
   async updateProblem(
     id: string,
     updatedProblem: UpdateProblemDto,
@@ -207,6 +259,12 @@ export class ProblemService {
     return problem;
   }
 
+  /**
+   * Searches for Problem documents based on a filter.
+   * @param searchProblemDto - The data transfer object containing the search criteria.
+   * @returns A Promise that resolves to an array of Problem documents that match the search criteria.
+   * @throws DatabaseException - If the search operation fails.
+   */
   async searchProblem(searchProblemDto: SearchProblemDto): Promise<Problem[]> {
     const { title, status } = searchProblemDto;
     let filter: any = {};
@@ -228,6 +286,11 @@ export class ProblemService {
     return problems;
   }
 
+  /**
+   * Retrieves all Problem documents from the database.
+   * @returns A Promise that resolves to an array of all Problem documents.
+   * @throws DatabaseException - If the retrieval operation fails.
+   */
   async getAllProblem(): Promise<Problem[]> {
     const problems = await this.problemRepository
       .getAllProblems()
@@ -239,10 +302,23 @@ export class ProblemService {
     return problems;
   }
 
-  async vote(id: string,isUpVote:boolean): Promise<boolean> {
+  /**
+   * Votes on a specific problem (upvote or downvote).
+   * @param id - The ID of the problem to vote on.
+   * @param isUpVote - Whether the vote is an upvote or downvote.
+   * @returns A Promise that resolves to a boolean indicating whether the vote was successful.
+   */
+  async vote(id: string, isUpVote: boolean): Promise<boolean> {
     return this.changeCounts(id, isUpVote, Counts.VOTES);
   }
 
+  /**
+   * Adds a solution to a specific problem.
+   * @param id - The ID of the problem to which the solution will be added.
+   * @param solutionId - The ID of the solution to be added.
+   * @returns A Promise that resolves to a boolean indicating whether the solution was added successfully.
+   * @throws DatabaseException - If the solution cannot be added.
+   */
   async addSolution(id: string, solutionId: string): Promise<boolean> {
     const problem = this.problemRepository
       .addSolution(id, solutionId)
@@ -255,6 +331,13 @@ export class ProblemService {
     return !!problem;
   }
 
+  /**
+   * Removes a solution from a specific problem.
+   * @param id - The ID of the problem from which the solution will be removed.
+   * @param solutionId - The ID of the solution to be removed.
+   * @returns A Promise that resolves to a boolean indicating whether the solution was removed successfully.
+   * @throws DatabaseException - If the solution cannot be removed.
+   */
   async removeSolution(id: string, solutionId: string): Promise<boolean> {
     const problem = this.problemRepository
       .removeSolution(id, solutionId)
@@ -267,21 +350,41 @@ export class ProblemService {
     return !!problem;
   }
 
+  /**
+   * Retrieves a specific Problem document along with its populated solutions.
+   * @param id - The ID of the problem to retrieve.
+   * @returns A Promise that resolves to the Problem document with populated solutions.
+   * @throws DatabaseException - If the problem cannot be retrieved.
+   */
   async getProblemWithSolutions(id: string): Promise<Problem> {
-    const problem = await this.problemRepository.getProblemWithSolutions(id).catch((error) => {
-      throw new DatabaseException(`Unable to load the problem : ${error.message}`);
-    })
+    const problem = await this.problemRepository
+      .getProblemWithSolutions(id)
+      .catch((error) => {
+        throw new DatabaseException(
+          `Unable to load the problem : ${error.message}`,
+        );
+      });
     this.changeCounts(id, true, Counts.VIEWS);
     return problem;
   }
 
+  /**
+   * Deletes a specific Problem document from the database.
+   * @param id - The ID of the problem to delete.
+   * @returns A Promise that resolves to the deleted Problem document.
+   * @throws NotFoundException - If the problem does not exist.
+   * @throws UnauthorizedAccessException - If the user is not authorized to delete the problem.
+   * @throws DatabaseException - If the problem cannot be deleted.
+   */
   async deleteProblem(id: string): Promise<Problem> {
     const userId: any = this.getUserID();
 
     const originalProblem = await this.problemRepository.getProblem(id);
 
-    if(!originalProblem) {
-      throw new NotFoundException( `Cannot delete problem with ID '${id}'. Problem not found.`);
+    if (!originalProblem) {
+      throw new NotFoundException(
+        `Cannot delete problem with ID '${id}'. Problem not found.`,
+      );
     }
 
     if (originalProblem.createdBy !== userId) {
