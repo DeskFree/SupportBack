@@ -11,14 +11,15 @@ import { ProblemRepository } from './repository/problem.repository';
 import { LogService } from '../log/log.service';
 import { LogActions } from '../log/enum/log-actions.enum';
 import { targetModels } from '../log/enum/log-models.enum';
-import mongoose from 'mongoose';
-import { DuplicateProblemException } from '../../exceptions/duplicate-problem.exception';
+import { DuplicateException } from '../../exceptions/duplicate-problem.exception';
 import { LogFailureException } from '../../exceptions/log-failure.exception';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
-import { error } from 'console';
 import { Counts } from './enums/counts.enum';
 import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
+import { DatabaseException } from 'src/exceptions/database.exception';
+import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
+import { error } from 'console';
 
 @Injectable()
 export class ProblemService {
@@ -44,7 +45,7 @@ export class ProblemService {
       title: newProblem.title,
     });
     if (existingProblems && existingProblems.length > 0) {
-      throw new DuplicateProblemException(
+      throw new DuplicateException(
         'A problem with a similar title already exists.',
       );
     }
@@ -64,12 +65,12 @@ export class ProblemService {
               .deleteProblem(this.getProblemId(problem))
               .catch((rollbackError) => {
                 console.error(
-                  `Rollback failed for problem ID: ${this.getProblemId(problem)}`,
+                  `Rollback operation failed for the problem with ID: ${this.getProblemId(problem)}.`,
                   rollbackError,
                 );
               });
             throw new LogFailureException(
-              `Failed to log the problem creation: ${error.message}`,
+              `Failed to record the creation of the problem. Error details: ${error.message}.`,
             );
           });
         return problem;
@@ -78,11 +79,13 @@ export class ProblemService {
         await this.logService.createLog({
           userId: userId,
           action: LogActions.CREATE,
-          details: `Failed to create the problem: ${error.message}`,
+          details: `Unable to create the problem: ${error.message}`,
           isSuccess: false,
           targetModel: targetModels.PROBLEM,
         });
-        throw error;
+        throw new DatabaseException(
+          `Unable to create the problem: ${error.message}`,
+        );
       });
 
     return problem;
@@ -101,7 +104,7 @@ export class ProblemService {
     );
 
     if (originalProblem.createdBy !== userId) {
-      throw new BadRequestException(
+      throw new UnauthorizedAccessException(
         'You are not authorized to update this problem.',
       );
     }
@@ -118,9 +121,15 @@ export class ProblemService {
           })
           .catch(async (error) => {
             await this.problemRepository
-              .rollBackProblem(problem)
+              .rollBackProblem(
+                originalProblem,
+                this.getProblemId(originalProblem),
+              )
               .catch((rollbackError) => {
-                console.error('Rollback failed:', rollbackError);
+                console.error(
+                  `Rollback operation failed for the problem with ID: ${this.getProblemId(problem)}.`,
+                  rollbackError,
+                );
               });
           });
         return problem;
@@ -129,11 +138,13 @@ export class ProblemService {
         await this.logService.createLog({
           userId: userId,
           action: LogActions.UPDATE,
-          details: `Failed to update the problem: ${error.message}`,
+          details: `Unable to update the problem: ${error.message}`,
           isSuccess: false,
           targetModel: targetModels.PROBLEM,
         });
-        throw error;
+        throw new DatabaseException(
+          `Unable to update the problem: ${error.message}`,
+        );
       });
 
     return problem;
@@ -150,30 +161,56 @@ export class ProblemService {
       filter.status = status.toUpperCase();
     }
 
-    const problems = await this.problemRepository.searchProblem(filter);
+    const problems = await this.problemRepository
+      .searchProblem(filter)
+      .catch((error) => {
+        const errMsg = `Unable to search the problem: ${error.message}`;
+        console.error(errMsg);
+        throw new DatabaseException(errMsg);
+      });
     return problems;
   }
 
   async getAllProblem(): Promise<Problem[]> {
-    const problems = await this.problemRepository.getAllProblems();
+    const problems = await this.problemRepository
+      .getAllProblems()
+      .catch((error) => {
+        const errMsg = `Unable to get all problems: ${error.message}`;
+        console.error(errMsg);
+        throw new DatabaseException(errMsg);
+      });
     return problems;
   }
 
   async addSolution(id: string, solutionId: string): Promise<boolean> {
-    const problem = this.problemRepository.addSolution(id, solutionId);
-    this.changeCounts(id,true,Counts.SOLUTION_COUNT)
+    const problem = this.problemRepository
+      .addSolution(id, solutionId)
+      .catch((error) => {
+        const errMsg = `Unable to add solution to the problem: ${error.message}`;
+        console.error(errMsg);
+        throw new DatabaseException(errMsg);
+      });
+    this.changeCounts(id, true, Counts.SOLUTION_COUNT);
     return !!problem;
   }
 
   async removeSolution(id: string, solutionId: string): Promise<boolean> {
-    const problem = this.problemRepository.removeSolution(id, solutionId);
-    this.changeCounts(id,false,Counts.SOLUTION_COUNT)
+    const problem = this.problemRepository
+      .removeSolution(id, solutionId)
+      .catch((error) => {
+        const errMsg = `Unable to remove solution from the problem: ${error.message}`;
+        console.error(errMsg);
+        throw new DatabaseException(errMsg);
+      });
+    this.changeCounts(id, false, Counts.SOLUTION_COUNT);
     return !!problem;
   }
 
   async getProblemWithSolutions(id: string): Promise<Problem> {
-    const problem = await this.problemRepository.getProblemWithSolutions(id);
-    this.changeCounts(id,true,Counts.VIEWS)
+    const problem = await this.problemRepository.getProblemWithSolutions(id).catch((error) => {
+      throw new DatabaseException(`Unable to load the problem : ${error.message}`);
+    })
+    this.changeCounts(id, true, Counts.VIEWS);
     return problem;
   }
 
@@ -183,7 +220,7 @@ export class ProblemService {
     const originalProblem = await this.problemRepository.getProblem(id);
 
     if (originalProblem.createdBy !== userId) {
-      throw new BadRequestException(
+      throw new UnauthorizedAccessException(
         'You are not authorized to update this problem.',
       );
     }
@@ -202,7 +239,10 @@ export class ProblemService {
             this.problemRepository
               .rollBackProblem(problem)
               .catch((rollbackError) => {
-                console.error('Rollback failed:', rollbackError);
+                console.error(
+                  `Rollback operation failed for the problem with ID: ${this.getProblemId(problem)}.`,
+                  rollbackError,
+                );
               });
           });
         return problem;
@@ -211,11 +251,13 @@ export class ProblemService {
         await this.logService.createLog({
           userId: userId,
           action: LogActions.DELETE,
-          details: `Failed to delete the problem: ${error.message}`,
+          details: `Unable to delete the problem: ${error.message}`,
           isSuccess: false,
           targetModel: targetModels.PROBLEM,
         });
-        throw error;
+        throw new DatabaseException(
+          `Unable to delete the problem: ${error.message}`,
+        );
       });
 
     // need to delete all solutions related to this problem
@@ -258,9 +300,9 @@ export class ProblemService {
         });
       })
       .catch((error) => {
-          const errorMsg = `Failed to fetch '${problemId}' problem from database : ${error.message}`
-          console.log(errorMsg);
-          throw new NotFoundException(errorMsg);
+        const errorMsg = `Failed to fetch the problem with ID '${problemId}' from the database. Error details: ${error.message}.`;
+        console.log(errorMsg);
+        throw new DatabaseException(errorMsg);
       });
   }
 

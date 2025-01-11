@@ -16,8 +16,15 @@ export class ProblemRepository {
     return await new this.problemModel(newProblem).save();
   }
 
-  async rollBackProblem(newProblem: Problem): Promise<Problem> {
-    return await new this.problemModel(newProblem).save();
+  async rollBackProblem(newProblem: Problem,id?:string): Promise<Problem> {
+    if(!id){
+      return await new this.problemModel(newProblem).save();
+    }
+    return await this.problemModel
+      .findByIdAndUpdate(id, newProblem, {
+        returnDocument: 'after',
+      })
+      .exec();
   }
 
   async getAllProblems(): Promise<Problem[]> {
