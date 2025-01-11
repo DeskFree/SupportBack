@@ -28,8 +28,66 @@ export class ProblemService {
     private readonly rateLimitService: RateLimitService,
   ) {}
 
+  
+
+  private changeCounts(
+    problemId: string,
+    isIncrease: boolean,
+    countType: Counts,
+  ): Promise <boolean> {
+    let count: number;
+    const problem = this.getProblem(problemId)
+      .then(async (problem) => {
+        const multiplier = isIncrease ? 1 : -1;
+        switch (countType) {
+          case Counts.VOTES:
+            count = problem.votes + multiplier;
+            break;
+          case Counts.VIEWS:
+            count = problem.views + multiplier;
+            break;
+          case Counts.SOLUTION_COUNT:
+            count = problem.solutionCount + multiplier;
+            break;
+          default:
+            throw new BadRequestException(`${countType} is Invalid Count Type`);
+            break;
+        }
+        const newCount: UpdateProblemCountsDto = {
+          problemId,
+          countType,
+          count,
+        };
+        const updatedProblem = await this.problemRepository.updateCounts(newCount).catch((error) => {
+          const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
+          console.log(errorMsg);
+          throw new BadRequestException(errorMsg);
+        });
+        return !!updatedProblem;
+      })
+      .catch((error) => {
+        const errorMsg = `Failed to fetch the problem with ID '${problemId}' from the database. Error details: ${error.message}.`;
+        console.log(errorMsg);
+        throw new DatabaseException(errorMsg);
+      });
+      return problem;
+  }
+
+  private async getProblem(id: string): Promise<Problem> {
+    const problem = await this.problemRepository.getProblem(id);
+    return problem;
+  }
+
+  private getProblemId(problem: Problem): any {
+    return JSON.parse(JSON.stringify(problem)).id;
+  }
+
+  private getUserID(): string {
+    return '6781080039c7df8d42da6ecd';// Hardcoded for now as we don't have authentication yet
+  }
+
   async createProblem(newProblem: CreateProblemDto): Promise<Problem> {
-    const userId = '6781080039c7df8d42da6ecd';
+    const userId = this.getUserID();
 
     const isRateLimited = await this.rateLimitService.isRateLimited(
       userId,
@@ -96,7 +154,7 @@ export class ProblemService {
   ): Promise<Problem> {
     updatedProblem.id = id;
 
-    const userId: any = '6781080039c7df8d42da6ecd';
+    const userId: any = this.getUserID();
 
     const originalProblem = await this.problemRepository.getProblem(
       updatedProblem.id,
@@ -181,12 +239,8 @@ export class ProblemService {
     return problems;
   }
 
-  async upVote(id: string): Promise<boolean> {
-    return this.changeCounts(id, true, Counts.VOTES);
-  }
-
-  async downVote(id: string): Promise<boolean> {
-    return this.changeCounts(id, false, Counts.VOTES);
+  async vote(id: string,isUpVote:boolean): Promise<boolean> {
+    return this.changeCounts(id, isUpVote, Counts.VOTES);
   }
 
   async addSolution(id: string, solutionId: string): Promise<boolean> {
@@ -222,9 +276,13 @@ export class ProblemService {
   }
 
   async deleteProblem(id: string): Promise<Problem> {
-    const userId: any = '6781080039c7df8d42da6ecd';
+    const userId: any = this.getUserID();
 
     const originalProblem = await this.problemRepository.getProblem(id);
+
+    if(!originalProblem) {
+      throw new NotFoundException( `Cannot delete problem with ID '${id}'. Problem not found.`);
+    }
 
     if (originalProblem.createdBy !== userId) {
       throw new UnauthorizedAccessException(
@@ -270,57 +328,5 @@ export class ProblemService {
     // need to delete all solutions related to this problem
 
     return problem;
-  }
-
-  private changeCounts(
-    problemId: string,
-    isIncrease: boolean,
-    countType: Counts,
-  ): Promise <boolean> {
-    let count: number;
-    const problem = this.getProblem(problemId)
-      .then(async (problem) => {
-        const multiplier = isIncrease ? 1 : -1;
-        switch (countType) {
-          case Counts.VOTES:
-            count = problem.votes + multiplier;
-            break;
-          case Counts.VIEWS:
-            count = problem.views + multiplier;
-            break;
-          case Counts.SOLUTION_COUNT:
-            count = problem.solutionCount + multiplier;
-            break;
-          default:
-            throw new BadRequestException(`${countType} is Invalid Count Type`);
-            break;
-        }
-        const newCount: UpdateProblemCountsDto = {
-          problemId,
-          countType,
-          count,
-        };
-        const updatedProblem = await this.problemRepository.updateCounts(newCount).catch((error) => {
-          const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
-          console.log(errorMsg);
-          throw new BadRequestException(errorMsg);
-        });
-        return !!updatedProblem;
-      })
-      .catch((error) => {
-        const errorMsg = `Failed to fetch the problem with ID '${problemId}' from the database. Error details: ${error.message}.`;
-        console.log(errorMsg);
-        throw new DatabaseException(errorMsg);
-      });
-      return problem;
-  }
-
-  private async getProblem(id: string): Promise<Problem> {
-    const problem = await this.problemRepository.getProblem(id);
-    return problem;
-  }
-
-  private getProblemId(problem: Problem): any {
-    return JSON.parse(JSON.stringify(problem)).id;
   }
 }

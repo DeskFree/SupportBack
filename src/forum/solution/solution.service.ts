@@ -13,7 +13,7 @@ export class SolutionService {
     id: Types.ObjectId,
     newSolution: CreateSolutionDto,
   ): Promise<Solution> {
-    newSolution.problemId = id
+    newSolution.problemId = id;
     return await this.solutionRepository.createSolution(newSolution);
   }
 
@@ -25,7 +25,10 @@ export class SolutionService {
     return await this.solutionRepository.deleteSolution(id);
   }
 
-  async updateSolution(id: string,updatedSolution:UpdateSolutionDto): Promise<Solution> {
-    return await this.solutionRepository.updateSolutions(id,updatedSolution);
+  async updateSolution(
+    id: string,
+    updatedSolution: UpdateSolutionDto,
+  ): Promise<Solution> {
+    return await this.solutionRepository.updateSolutions(id, updatedSolution);
   }
 }

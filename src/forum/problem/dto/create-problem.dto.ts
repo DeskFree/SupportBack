@@ -4,6 +4,7 @@ import {
   IsString,
   IsEmpty,
   Equals,
+  IsOptional,
 } from 'class-validator';
 import { ProblemStatus } from '../enums/status.enum';
 import { Types } from 'mongoose';
@@ -21,12 +22,15 @@ export class CreateProblemDto {
 
   tags: string;
 
+  @IsOptional()
   @Equals(0)
   votes: number;
 
+  @IsOptional()
   @Equals(0)
   solutionCount: number;
 
+  @IsOptional()
   @Equals(0)
   views: number;
 
