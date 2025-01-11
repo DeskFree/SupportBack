@@ -19,7 +19,6 @@ import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 import { DatabaseException } from 'src/exceptions/database.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
-import { error } from 'console';
 
 @Injectable()
 export class ProblemService {
@@ -182,6 +181,14 @@ export class ProblemService {
     return problems;
   }
 
+  async upVote(id: string): Promise<boolean> {
+    return this.changeCounts(id, true, Counts.VOTES);
+  }
+
+  async downVote(id: string): Promise<boolean> {
+    return this.changeCounts(id, false, Counts.VOTES);
+  }
+
   async addSolution(id: string, solutionId: string): Promise<boolean> {
     const problem = this.problemRepository
       .addSolution(id, solutionId)
@@ -269,7 +276,7 @@ export class ProblemService {
     problemId: string,
     isIncrease: boolean,
     countType: Counts,
-  ) {
+  ): Promise <boolean> {
     let count: number;
     const problem = this.getProblem(problemId)
       .then(async (problem) => {
@@ -293,17 +300,19 @@ export class ProblemService {
           countType,
           count,
         };
-        await this.problemRepository.updateCounts(newCount).catch((error) => {
+        const updatedProblem = await this.problemRepository.updateCounts(newCount).catch((error) => {
           const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
           console.log(errorMsg);
           throw new BadRequestException(errorMsg);
         });
+        return !!updatedProblem;
       })
       .catch((error) => {
         const errorMsg = `Failed to fetch the problem with ID '${problemId}' from the database. Error details: ${error.message}.`;
         console.log(errorMsg);
         throw new DatabaseException(errorMsg);
       });
+      return problem;
   }
 
   private async getProblem(id: string): Promise<Problem> {
