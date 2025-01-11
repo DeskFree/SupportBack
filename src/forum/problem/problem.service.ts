@@ -20,6 +20,7 @@ import { TooManyRequestsException } from 'src/exceptions/too-many-requests-excep
 import { DatabaseException } from 'src/exceptions/database.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
 import { Types } from 'mongoose';
+import { deprecate } from 'util';
 
 /**
  * Service class for managing Problem entities.
@@ -85,6 +86,7 @@ export class ProblemService {
             console.log(errorMsg);
             throw new BadRequestException(errorMsg);
           });
+          console.log(updatedProblem)
         return !!updatedProblem;
       })
       .catch((error) => {
@@ -102,16 +104,10 @@ export class ProblemService {
    */
   private async getProblem(id: Types.ObjectId): Promise<Problem> {
     const problem = await this.problemRepository.getProblem(id);
+    if(!problem){
+      throw new NotFoundException(`No problem exists with the given ID '${id}'.`)
+    }
     return problem;
-  }
-
-  /**
-   * Extracts the ID from a Problem document.
-   * @param problem - The Problem document from which to extract the ID.
-   * @returns The ID of the Problem document.
-   */
-  private getProblemId(problem: Problem): any {
-    return JSON.parse(JSON.stringify(problem)).id;
   }
 
   /**
@@ -213,6 +209,12 @@ export class ProblemService {
       updatedProblem.id,
     );
 
+    if (!originalProblem) {
+      throw new NotFoundException(
+        `Cannot delete problem with ID '${id}'. Problem not found.`,
+      );
+    }
+
     if (originalProblem.createdBy !== userId) {
       throw new UnauthorizedAccessException(
         'You are not authorized to update this problem.',
@@ -232,8 +234,7 @@ export class ProblemService {
           .catch(async (error) => {
             await this.problemRepository
               .rollBackProblem(
-                originalProblem,
-                this.getProblemId(originalProblem),
+                originalProblem
               )
               .catch((rollbackError) => {
                 console.error(
@@ -358,6 +359,7 @@ export class ProblemService {
    * @throws DatabaseException - If the problem cannot be retrieved.
    */
   async getProblemWithSolutions(id: Types.ObjectId): Promise<Problem> {
+    await this.changeCounts(id, true, Counts.VIEWS);
     const problem = await this.problemRepository
       .getProblemWithSolutions(id)
       .catch((error) => {
@@ -365,7 +367,6 @@ export class ProblemService {
           `Unable to load the problem : ${error.message}`,
         );
       });
-    this.changeCounts(id, true, Counts.VIEWS);
     return problem;
   }
 

@@ -102,6 +102,7 @@ export class ProblemController {
     @Body() updatedProblem: UpdateProblemDto,
   ): Promise<Problem> {
     try {
+      id = new Types.ObjectId(id)
       const problem = this.problemService.updateProblem(id, updatedProblem);
       if (!problem) {
         throw new BadRequestException({
@@ -124,6 +125,7 @@ export class ProblemController {
   @Get('/:id')
   getProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
     try {
+      id = new Types.ObjectId(id)
       const problem = this.problemService.getProblemWithSolutions(id);
 
       if (!problem) {
@@ -148,6 +150,7 @@ export class ProblemController {
   @Delete('/:id')
   deleteProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
     try {
+      id = new Types.ObjectId(id)
       const problem = this.problemService.deleteProblem(id);
 
       if (!problem) {
@@ -175,6 +178,7 @@ export class ProblemController {
     @Param('isUpVote') isUpVote: boolean,
   ): Promise<boolean> {
     try {
+      id = new Types.ObjectId(id)
       const isVoted = this.problemService.vote(id, isUpVote);
       if (isVoted) {
         throw new BadRequestException({

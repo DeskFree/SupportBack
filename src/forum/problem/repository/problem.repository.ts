@@ -40,12 +40,12 @@ export class ProblemRepository {
    * @param id - The ID of the problem to be updated (optional).
    * @returns A Promise that resolves to the rolled back Problem document.
    */
-  async rollBackProblem(newProblem: Problem, id?: string): Promise<Problem> {
-    if (!id) {
+  async rollBackProblem(newProblem: Problem): Promise<Problem> {
+    if (!newProblem._id) {
       return await new this.problemModel(newProblem).save();
     }
     return await this.problemModel
-      .findByIdAndUpdate(id, newProblem, {
+      .findByIdAndUpdate(newProblem._id, newProblem, {
         returnDocument: 'after',
       })
       .exec();
@@ -124,11 +124,16 @@ export class ProblemRepository {
    * @returns A Promise that resolves to the updated Problem document.
    */
   async updateCounts(newCount: UpdateProblemCountsDto): Promise<Problem> {
-    const query = { [newCount.countType]: newCount.count };
+    const { problemId, countType, count } = newCount;
+  
+    const update = { [countType]: count };
+  
     return await this.problemModel
-      .findByIdAndUpdate(newCount.problemId, {
-        returnDocument: 'after',
-      })
+      .findByIdAndUpdate(
+        problemId,
+        { $set: update },
+        { new: true },
+      )
       .exec();
   }
 
