@@ -1,10 +1,17 @@
-import { IsIn } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, ValidationArguments } from 'class-validator';
 import { ProblemStatus } from '../enums/status.enum';
 
-export class SearchProblemDto {
-  title: string
-  tags: string
 
-  @IsIn(Object.values(ProblemStatus))
-  status: ProblemStatus
+export class SearchProblemDto {
+  
+  @IsOptional()
+  @IsString()
+  title?: string
+
+  @IsOptional()
+  @IsString()
+  tags?: string
+
+  @IsOptional()
+  status?: ProblemStatus
 }

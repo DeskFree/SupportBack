@@ -1,34 +1,44 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { ProblemStatus } from '../enums/status.enum';
 
 export type ProblemDocument = Problem & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, toJSON: { virtuals: true } })
 export class Problem {
-  @Prop()
+  @Prop({ type: String, required: true })
   title: string;
 
-  @Prop()
+  @Prop({ type: String, required: true })
   details: string;
 
-  @Prop()
+  @Prop({ type: String, required: false })
   tryAndExpect: string;
 
-  @Prop()
+  @Prop({ type: String, required: false })
   tags: string;
 
-  @Prop()
+  @Prop({ type: Number, default: 0 })
   votes: number;
 
-  @Prop()
+  @Prop({ type: Number, default: 0 })
   views: number;
 
-  @Prop()
-  answerCount: number;
+  @Prop({ type: Number, default: 0 })
+  solutionCount: number;
 
-  @Prop()
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Solution' }] })
+  solutions: Types.ObjectId[];
+
+  @Prop({ type: String, required: false })
   status: ProblemStatus;
+
+  @Prop({ type: String, required: true })
+  createdBy: Types.ObjectId;
 }
 
-export const ProblemnSchema = SchemaFactory.createForClass(Problem);
+export const ProblemSchema = SchemaFactory.createForClass(Problem);
+
+ProblemSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { SolutionService } from './solution.service';
 import { CreateSolutionDto } from './dto/create-solution.dto';
-import mongoose from 'mongoose';
+import { Types } from 'mongoose';
 import { UpdateSolutionDto } from './dto/update-solution.dto';
 import { Solution } from './schemas/solution.schema';
 
@@ -11,7 +11,7 @@ export class SolutionController {
 
   @Post('/:id')
   createSolution(
-    @Param('id') id: mongoose.Schema.Types.ObjectId,
+    @Param('id') id:Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
   ):Promise <Solution> {
     return this.solutionService.createSolution(id, newSolution);

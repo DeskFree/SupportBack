@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SolutionRepository } from './repository/solution.repository';
 import { Solution } from './schemas/solution.schema';
 import { CreateSolutionDto } from './dto/create-solution.dto';
-import mongoose from 'mongoose';
+import { Types } from 'mongoose';
 import { UpdateSolutionDto } from './dto/update-solution.dto';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class SolutionService {
   constructor(private solutionRepository: SolutionRepository) {}
 
   async createSolution(
-    id: mongoose.Schema.Types.ObjectId,
+    id: Types.ObjectId,
     newSolution: CreateSolutionDto,
   ): Promise<Solution> {
     newSolution.problemId = id
