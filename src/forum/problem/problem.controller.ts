@@ -28,10 +28,25 @@ import { LogFailureException } from 'src/exceptions/log-failure.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 
+/**
+ * Controller class for handling HTTP requests related to Problem entities.
+ * This class provides endpoints for creating, retrieving, updating, and deleting problems,
+ * as well as voting on problems and searching for problems.
+ */
 @Controller('forum/problem')
 export class ProblemController {
+  /**
+   * Constructs the ProblemController.
+   * @param problemService - The service for handling business logic related to Problem entities.
+   */
   constructor(private readonly problemService: ProblemService) {}
 
+  /**
+   * Handles the creation of a new Problem.
+   * @param newProblem - The data transfer object containing the details of the problem to be created.
+   * @returns A Promise that resolves to the created Problem document.
+   * @throws HttpException - If an error occurs during the creation process.
+   */
   @Post()
   @UsePipes(new ProblemValidator())
   async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
@@ -42,6 +57,12 @@ export class ProblemController {
     }
   }
 
+  /**
+   * Handles the retrieval of problems based on search criteria or all problems if no criteria are provided.
+   * @param param - The data transfer object containing the search criteria (optional).
+   * @returns A Promise that resolves to an array of Problem documents.
+   * @throws HttpException - If no problems are found or an error occurs during the retrieval process.
+   */
   @Get()
   @UsePipes(new ProblemValidator())
   async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
@@ -65,6 +86,13 @@ export class ProblemController {
     }
   }
 
+  /**
+   * Handles the update of an existing Problem.
+   * @param id - The ID of the problem to update.
+   * @param updatedProblem - The data transfer object containing the updated details of the problem.
+   * @returns A Promise that resolves to the updated Problem document.
+   * @throws HttpException - If the problem does not exist or an error occurs during the update process.
+   */
   @Put('/:id')
   @UsePipes(new ProblemValidator())
   updateProblem(
@@ -85,6 +113,12 @@ export class ProblemController {
     }
   }
 
+  /**
+   * Handles the retrieval of a specific Problem along with its solutions.
+   * @param id - The ID of the problem to retrieve.
+   * @returns A Promise that resolves to the Problem document with populated solutions.
+   * @throws HttpException - If the problem does not exist or an error occurs during the retrieval process.
+   */
   @Get('/:id')
   getProblem(@Param('id') id: string): Promise<Problem> {
     try {
@@ -103,6 +137,12 @@ export class ProblemController {
     }
   }
 
+  /**
+   * Handles the deletion of a specific Problem.
+   * @param id - The ID of the problem to delete.
+   * @returns A Promise that resolves to the deleted Problem document.
+   * @throws HttpException - If the problem does not exist or an error occurs during the deletion process.
+   */
   @Delete('/:id')
   deleteProblem(@Param('id') id: string): Promise<Problem> {
     try {
@@ -120,6 +160,13 @@ export class ProblemController {
     }
   }
 
+  /**
+   * Handles voting on a specific Problem (upvote or downvote).
+   * @param id - The ID of the problem to vote on.
+   * @param isUpVote - Whether the vote is an upvote or downvote.
+   * @returns A Promise that resolves to a boolean indicating whether the vote was successful.
+   * @throws HttpException - If the problem does not exist or an error occurs during the voting process.
+   */
   @Post('/upvote/:id/:isUpVote')
   voteProblem(
     @Param('id') id: string,
@@ -140,6 +187,11 @@ export class ProblemController {
     }
   }
 
+  /**
+   * Handles errors and maps them to appropriate HTTP exceptions.
+   * @param error - The error that occurred.
+   * @returns An HttpException with the appropriate status code and message.
+   */
   private handleError(error: Error): HttpException {
     if (
       error instanceof BadRequestException ||
