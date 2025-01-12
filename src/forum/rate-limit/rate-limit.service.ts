@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class RateLimitService {
   private userRateLimit: Map<string, number> = new Map();
   private readonly limit = 5;
-  private readonly windowMs = 600;
+  private readonly windowMs = 60000;
 
   async isRateLimited(userId: string, action: string): Promise<boolean> {
     const currentTime = Date.now();
