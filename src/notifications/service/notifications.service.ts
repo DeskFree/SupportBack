@@ -1,9 +1,9 @@
 // src/notifications/services/notification.service.ts
 import { Injectable } from '@nestjs/common';
-import { UserRole } from '../schemas/notification.schema';
 import { CreateNotificationDto } from '../dto/notificationCreateDto';
 import { NotificationRepository } from '../repository/notification.repository';
 import { EmailService } from 'src/email/email.service';
+import { UserRole } from '../enum/notifications.enum';
 
 @Injectable()
 export class NotificationService {

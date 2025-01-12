@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Notification } from '../schemas/notification.schema';
-import { UserRole } from '../schemas/notification.schema';
 import { CreateNotificationDto } from '../dto/notificationCreateDto';
+import { UserRole } from '../enum/notifications.enum';
 
 @Injectable()
 export class NotificationRepository {
