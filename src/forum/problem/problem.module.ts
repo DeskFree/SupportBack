@@ -15,5 +15,6 @@ import { RateLimitService } from '../rate-limit/rate-limit.service';
   ],
   controllers: [ProblemController],
   providers: [ProblemService, ProblemRepository, RateLimitService],
+  exports: [ProblemService],
 })
 export class ProblemModule {}
