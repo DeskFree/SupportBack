@@ -23,10 +23,14 @@ export class Notification {
   ticketId: string; // ID of the related ticket
 
   @Prop({ required: true })
+  title: string; // Notification message
+
+  @Prop({ required: true })
   message: string; // Notification message
 
   @Prop({ default: false })
   isRead: boolean; // Whether the notification has been read
 }
+
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

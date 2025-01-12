@@ -29,7 +29,7 @@ export class NotificationRepository {
         { targetRoles: { $in: [userRole] } }, // Notifications for the user's role
         { targetRoles: { $size: 0 } }, // Common notifications (targetRoles is empty)
       ],
-    }).exec();
+    })
   }
 
   async markAsRead(notificationId: string): Promise<Notification> {
