@@ -8,8 +8,8 @@ export class RaisingController {
     constructor(private readonly raisingService: RaisingService) { }
 
     @Post()
-    create(@Body() raisingDto: CreateRaisingDto) {
-        return this.raisingService.create(raisingDto);
+    create(@Body() createRaisingDto: CreateRaisingDto) {
+        return this.raisingService.create(createRaisingDto);
     }
 
     @Get()
@@ -23,8 +23,8 @@ export class RaisingController {
     }
 
     @Put(':id')
-    update(@Param('id') id: string, @Body() updateDto: UpdateRaisingDto) {
-        return this.raisingService.update(id, updateDto);
+    update(@Param('id') id: string, @Body() updateRaisingDto: UpdateRaisingDto) {
+        return this.raisingService.update(id, updateRaisingDto);
     }
 
     @Delete(':id')
