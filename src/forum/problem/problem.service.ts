@@ -43,13 +43,30 @@ export class ProblemService {
   ) {}
 
   /**
-   * Updates the count (e.g., votes, views, solution count) of a specific problem.
-   * @param problemId - The ID of the problem to update.
-   * @param isIncrease - Whether to increase or decrease the count.
-   * @param countType - The type of count to update (e.g., VOTES, VIEWS, SOLUTION_COUNT).
-   * @returns A Promise that resolves to a boolean indicating whether the update was successful.
-   * @throws BadRequestException - If the count type is invalid.
-   * @throws DatabaseException - If the problem cannot be fetched or updated.
+   * Updates the count of a specified type for a given problem.
+   *
+   * @param {Types.ObjectId} problemId - The ID of the problem to update.
+   * @param {boolean} isIncrease - Determines whether to increase or decrease the count.
+   * @param {Counts} countType - The type of count to update (e.g., VOTES, VIEWS, SOLUTION_COUNT).
+   * @returns {Promise<boolean>} - A promise that resolves to `true` if the count was successfully updated, otherwise `false`.
+   *
+   * @throws {BadRequestException} - If the provided count type is invalid or if updating the count fails.
+   * @throws {DatabaseException} - If fetching the problem from the database fails.
+   *
+   * @example
+   * ```typescript
+   * const problemId = new Types.ObjectId("60d21b4667d0d8992e610c85");
+   * const isIncrease = true;
+   * const countType = Counts.VOTES;
+   *
+   * changeCounts(problemId, isIncrease, countType)
+   *   .then((result) => {
+   *     console.log(`Count update successful: ${result}`);
+   *   })
+   *   .catch((error) => {
+   *     console.error(`Error updating count: ${error.message}`);
+   *   });
+   * ```
    */
   private changeCounts(
     problemId: Types.ObjectId,
@@ -97,6 +114,12 @@ export class ProblemService {
     return problem;
   }
 
+  /**
+   * Rolls back the changes made to a specific Problem document.
+   * @param problem - The Problem document to roll back.
+   * @returns A Promise that resolves when the rollback operation is complete.
+   * @throws DatabaseException - If the rollback operation fails.
+   */
   private async rollbackProblem(problem: Problem): Promise<void> {
     await this.problemRepository
       .rollBackProblem(problem)
@@ -105,7 +128,9 @@ export class ProblemService {
           `Rollback operation failed for the problem with ID: ${problem._id}.`,
           rollbackError,
         );
-        throw new DatabaseException(`Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`);
+        throw new DatabaseException(
+          `Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`,
+        );
       });
     return Promise.resolve();
   }
@@ -165,16 +190,26 @@ export class ProblemService {
     const problem = await this.problemRepository
       .createProblem(newProblem)
       .then(async (problem) => {
-        await this.logService
-          .createLog(
-            {
-              userId: problem.createdBy,
-              action: LogActions.CREATE,
-              targetId: problem._id,
-              targetModel: targetModels.PROBLEM,
-            },
-            () => this.rollbackProblem(problem),
-          )
+        await this.logService.createLog(
+          {
+            userId: problem.createdBy,
+            action: LogActions.CREATE,
+            targetId: problem._id,
+            targetModel: targetModels.PROBLEM,
+          },
+          async () => {
+            return await this.problemRepository
+              .deleteProblem(problem._id)
+              .catch((rollbackError) => {
+                console.error(
+                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
+                  rollbackError,
+                );
+                throw new DatabaseException(
+                  `Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`)
+              });
+          },
+        );
         return problem;
       })
       .catch(async (error) => {
@@ -228,13 +263,15 @@ export class ProblemService {
     const problem = await this.problemRepository
       .updateProblem(updatedProblem)
       .then(async (problem) => {
-        await this.logService
-          .createLog({
+        await this.logService.createLog(
+          {
             userId: userId,
             action: LogActions.UPDATE,
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
-          },()=> this.rollbackProblem(problem))
+          },
+          () => this.rollbackProblem(problem),
+        );
         return problem;
       })
       .catch(async (error) => {
@@ -401,13 +438,15 @@ export class ProblemService {
     const problem = await this.problemRepository
       .deleteProblem(id)
       .then(async (problem) => {
-        await this.logService
-          .createLog({
+        await this.logService.createLog(
+          {
             userId: userId,
             action: LogActions.DELETE,
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
-          },()=> this.rollbackProblem(problem))
+          },
+          () => this.rollbackProblem(problem),
+        );
         return problem;
       })
       .catch(async (error) => {

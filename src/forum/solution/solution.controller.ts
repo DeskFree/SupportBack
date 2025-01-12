@@ -24,7 +24,8 @@ export class SolutionController {
   }
 
   @Delete('/:id')
-  deleteSolution(@Param('id') id: string):Promise <Solution> {
+  deleteSolution(@Param('id') id: Types.ObjectId):Promise <Solution> {
+    id = new Types.ObjectId(id);
     return this.solutionService.deleteSolution(id);
   }
 

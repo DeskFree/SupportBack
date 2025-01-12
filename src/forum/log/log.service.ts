@@ -12,7 +12,7 @@ export class LogService {
 
   async createLog(
     newLog: CreateLogDto,
-    rollbackFunction?: () => Promise<void>,
+    rollbackFunction?: () => Promise<any>,
   ): Promise<Log> {
     try {
       // Attempt to create the log
@@ -30,7 +30,7 @@ export class LogService {
         }
       }
       throw new LogFailureException(
-        `Failed to record the creation of the problem. Error details: ${error.message}.`,
+        `Failed to record the creation of the ${newLog.targetModel.toLowerCase()}. Error details: ${error.message}.`,
       );
     }
   }
