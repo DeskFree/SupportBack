@@ -4,14 +4,13 @@ import { Solution } from './schemas/solution.schema';
 import { CreateSolutionDto } from './dto/create-solution.dto';
 import { Types } from 'mongoose';
 import { UpdateSolutionDto } from './dto/update-solution.dto';
-import { Problem } from '../problem/schemas/problem.schema';
-import { ProblemRepository } from '../problem/repository/problem.repository';
+import { ProblemService } from '../problem/problem.service';
 
 @Injectable()
 export class SolutionService {
   constructor(
     private solutionRepository: SolutionRepository,
-    private problemRepository: ProblemRepository,
+    private problemService: ProblemService,
   ) {}
 
   async createSolution(
@@ -19,7 +18,7 @@ export class SolutionService {
     newSolution: CreateSolutionDto,
   ): Promise<Solution> {
     const userId = '';
-    const exist = this.problemRepository.getProblem(id);
+    const exist = this.problemService.getProblemWithSolutions(id);
     if (!exist) {
       throw new NotFoundException();
     }
