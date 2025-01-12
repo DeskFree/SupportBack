@@ -86,7 +86,7 @@ export class ProblemService {
             console.log(errorMsg);
             throw new BadRequestException(errorMsg);
           });
-          console.log(updatedProblem)
+        console.log(updatedProblem);
         return !!updatedProblem;
       })
       .catch((error) => {
@@ -97,25 +97,39 @@ export class ProblemService {
     return problem;
   }
 
+  private async rollbackProblem(problem: Problem): Promise<void> {
+    await this.problemRepository
+      .rollBackProblem(problem)
+      .catch((rollbackError) => {
+        console.error(
+          `Rollback operation failed for the problem with ID: ${problem._id}.`,
+          rollbackError,
+        );
+        throw new DatabaseException(`Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`);
+      });
+    return Promise.resolve();
+  }
+  /**
+   * Retrieves the ID of the user who is currently logged in.
+   * @returns The ID of the user who is currently logged in.
+   */
+  private getUserID(): Types.ObjectId {
+    return new Types.ObjectId('6781080039c7df8d42da6ecd'); // Hardcoded for now as we don't have authentication yet
+  }
+
   /**
    * Retrieves a specific Problem document by its ID.
    * @param id - The ID of the problem to retrieve.
    * @returns A Promise that resolves to the retrieved Problem document.
    */
-  private async getProblem(id: Types.ObjectId): Promise<Problem> {
+  async getProblem(id: Types.ObjectId): Promise<Problem> {
     const problem = await this.problemRepository.getProblem(id);
-    if(!problem){
-      throw new NotFoundException(`No problem exists with the given ID '${id}'.`)
+    if (!problem) {
+      throw new NotFoundException(
+        `No problem exists with the given ID '${id}'.`,
+      );
     }
     return problem;
-  }
-
-  /**
-   * Retrieves the ID of the user who is currently logged in.
-   * @returns The ID of the user who is currently logged in.
-   */
-  private getUserID(): string {
-    return '6781080039c7df8d42da6ecd'; // Hardcoded for now as we don't have authentication yet
   }
 
   /**
@@ -152,25 +166,15 @@ export class ProblemService {
       .createProblem(newProblem)
       .then(async (problem) => {
         await this.logService
-          .createLog({
-            userId: problem.createdBy,
-            action: LogActions.CREATE,
-            targetId: problem._id,
-            targetModel: targetModels.PROBLEM,
-          })
-          .catch(async (error) => {
-            await this.problemRepository
-              .deleteProblem(problem._id)
-              .catch((rollbackError) => {
-                console.error(
-                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
-                  rollbackError,
-                );
-              });
-            throw new LogFailureException(
-              `Failed to record the creation of the problem. Error details: ${error.message}.`,
-            );
-          });
+          .createLog(
+            {
+              userId: problem.createdBy,
+              action: LogActions.CREATE,
+              targetId: problem._id,
+              targetModel: targetModels.PROBLEM,
+            },
+            () => this.rollbackProblem(problem),
+          )
         return problem;
       })
       .catch(async (error) => {
@@ -230,19 +234,7 @@ export class ProblemService {
             action: LogActions.UPDATE,
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
-          })
-          .catch(async (error) => {
-            await this.problemRepository
-              .rollBackProblem(
-                originalProblem
-              )
-              .catch((rollbackError) => {
-                console.error(
-                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
-                  rollbackError,
-                );
-              });
-          });
+          },()=> this.rollbackProblem(problem))
         return problem;
       })
       .catch(async (error) => {
@@ -321,15 +313,23 @@ export class ProblemService {
    * @returns A Promise that resolves to a boolean indicating whether the solution was added successfully.
    * @throws DatabaseException - If the solution cannot be added.
    */
-  async addSolution(id: Types.ObjectId, solutionId: string): Promise<boolean> {
+  async addSolution(
+    problemId: Types.ObjectId,
+    solutionId: Types.ObjectId,
+  ): Promise<boolean> {
     const problem = this.problemRepository
-      .addSolution(id, solutionId)
+      .addSolution(problemId, solutionId)
       .catch((error) => {
         const errMsg = `Unable to add solution to the problem: ${error.message}`;
         console.error(errMsg);
         throw new DatabaseException(errMsg);
       });
-    this.changeCounts(id, true, Counts.SOLUTION_COUNT);
+    this.changeCounts(problemId, true, Counts.SOLUTION_COUNT);
+    if (!problem) {
+      throw new NotFoundException(
+        `Unable to add solution: Problem with ID '${problemId}' not found.`,
+      );
+    }
     return !!problem;
   }
 
@@ -340,7 +340,10 @@ export class ProblemService {
    * @returns A Promise that resolves to a boolean indicating whether the solution was removed successfully.
    * @throws DatabaseException - If the solution cannot be removed.
    */
-  async removeSolution(id: Types.ObjectId, solutionId: string): Promise<boolean> {
+  async removeSolution(
+    id: Types.ObjectId,
+    solutionId: Types.ObjectId,
+  ): Promise<boolean> {
     const problem = this.problemRepository
       .removeSolution(id, solutionId)
       .catch((error) => {
@@ -378,7 +381,7 @@ export class ProblemService {
    * @throws UnauthorizedAccessException - If the user is not authorized to delete the problem.
    * @throws DatabaseException - If the problem cannot be deleted.
    */
-  async deleteProblem(id:Types.ObjectId): Promise<Problem> {
+  async deleteProblem(id: Types.ObjectId): Promise<Problem> {
     const userId: any = this.getUserID();
 
     const originalProblem = await this.problemRepository.getProblem(id);
@@ -404,17 +407,7 @@ export class ProblemService {
             action: LogActions.DELETE,
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
-          })
-          .catch(async (error) => {
-            this.problemRepository
-              .rollBackProblem(problem)
-              .catch((rollbackError) => {
-                console.error(
-                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
-                  rollbackError,
-                );
-              });
-          });
+          },()=> this.rollbackProblem(problem))
         return problem;
       })
       .catch(async (error) => {

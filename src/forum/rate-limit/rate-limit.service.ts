@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class RateLimitService {
-  private userRateLimit: Map<string, number> = new Map();
+  private userRateLimit: Map<Types.ObjectId, number> = new Map();
   private readonly limit = 5;
   private readonly windowMs = 60000;
 
-  async isRateLimited(userId: string, action: string): Promise<boolean> {
+  async isRateLimited(userId: Types.ObjectId, action: string): Promise<boolean> {
     const currentTime = Date.now();
     const lastRequestTime = this.userRateLimit.get(userId);
 

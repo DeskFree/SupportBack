@@ -74,7 +74,10 @@ export class ProblemRepository {
    * @param solutionId - The ID of the solution to be added to the problem.
    * @returns A Promise that resolves to void.
    */
-  async addSolution(problemId: Types.ObjectId, solutionId: string): Promise<void> {
+  async addSolution(
+    problemId: Types.ObjectId,
+    solutionId: Types.ObjectId,
+  ): Promise<void> {
     await this.problemModel.findByIdAndUpdate(
       problemId,
       { $push: { solutions: solutionId } },
@@ -88,7 +91,10 @@ export class ProblemRepository {
    * @param solutionId - The ID of the solution to be removed from the problem.
    * @returns A Promise that resolves to void
    */
-  async removeSolution(problemId: Types.ObjectId, solutionId: string): Promise<void> {
+  async removeSolution(
+    problemId: Types.ObjectId,
+    solutionId:  Types.ObjectId,
+  ): Promise<void> {
     await this.problemModel.findByIdAndUpdate(
       problemId,
       { $pull: { solutions: solutionId } },
@@ -125,15 +131,11 @@ export class ProblemRepository {
    */
   async updateCounts(newCount: UpdateProblemCountsDto): Promise<Problem> {
     const { problemId, countType, count } = newCount;
-  
+
     const update = { [countType]: count };
-  
+
     return await this.problemModel
-      .findByIdAndUpdate(
-        problemId,
-        { $set: update },
-        { new: true },
-      )
+      .findByIdAndUpdate(problemId, { $set: update }, { new: true })
       .exec();
   }
 

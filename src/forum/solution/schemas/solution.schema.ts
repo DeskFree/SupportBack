@@ -5,6 +5,10 @@ export type SolutionDocument = Solution & Document;
 
 @Schema({ timestamps: true })
 export class Solution {
+  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId()})
+  _id: Types.ObjectId;
+
+  
   @Prop({ type: Types.ObjectId, ref: 'Problem', required: true })
   problemId: Types.ObjectId;
 

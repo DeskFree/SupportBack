@@ -42,5 +42,5 @@ export class CreateProblemDto {
   status: ProblemStatus;
 
   @IsEmpty()
-  createdBy: string;
+  createdBy: Types.ObjectId;
 }

@@ -5,32 +5,55 @@ import { CreateSolutionDto } from './dto/create-solution.dto';
 import { Types } from 'mongoose';
 import { UpdateSolutionDto } from './dto/update-solution.dto';
 import { ProblemService } from '../problem/problem.service';
+import { LogService } from '../log/log.service';
+import { LogActions } from '../log/enum/log-actions.enum';
+import { targetModels } from '../log/enum/log-models.enum';
 
 @Injectable()
 export class SolutionService {
   constructor(
     private solutionRepository: SolutionRepository,
     private problemService: ProblemService,
+    private logService: LogService,
   ) {}
+
+  /**
+   * Retrieves the ID of the user who is currently logged in.
+   * @returns The ID of the user who is currently logged in.
+   */
+  private getUserID(): Types.ObjectId {
+    return new Types.ObjectId('6781080039c7df8d42da6ecd'); // Hardcoded for now as we don't have authentication yet
+  }
 
   async createSolution(
     id: Types.ObjectId,
     newSolution: CreateSolutionDto,
   ): Promise<Solution> {
-    const userId = '';
-    const exist = this.problemService.getProblemWithSolutions(id);
-    if (!exist) {
-      throw new NotFoundException();
-    }
+    const userId = this.getUserID();
+    const exist = await this.problemService.getProblem(id);
 
-    newSolution.problemId = id;
-    const problem = await this.solutionRepository
+    newSolution.problemId = exist._id;
+    newSolution.createdBy = userId;
+
+    const solution = await this.solutionRepository
       .createSolution(newSolution)
-      .then((problem) => {
-        return problem;
+      .then(async (solution) => {
+        const isProblemUpdated = await this.problemService.addSolution(
+          newSolution.problemId,
+          solution._id,
+        );
+        if (isProblemUpdated) {
+          const log = await this.logService.createLog({
+            userId: userId,
+            action: LogActions.CREATE,
+            targetModel: targetModels.SOLUTION,
+            targetId: solution._id,
+          },);
+          return solution;
+        }
       });
 
-    return problem;
+    return solution;
   }
 
   async getSolutions(id: string): Promise<Solution[]> {

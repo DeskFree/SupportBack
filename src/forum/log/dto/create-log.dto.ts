@@ -2,7 +2,7 @@ import mongoose, { Types } from 'mongoose';
 import { LogActions } from '../enum/log-actions.enum';
 
 export class CreateLogDto {
-  userId: any;
+  userId: Types.ObjectId;
 
   action: LogActions;
 
