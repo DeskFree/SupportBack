@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Problem, ProblemDocument } from '../schemas/problem.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateProblemDto } from '../dto/create-problem.dto';
 import { UpdateProblemDto } from '../dto/update-problem.Dto';
 import { UpdateProblemCountsDto } from '../dto/update-problem-counts.dto';
@@ -40,12 +40,12 @@ export class ProblemRepository {
    * @param id - The ID of the problem to be updated (optional).
    * @returns A Promise that resolves to the rolled back Problem document.
    */
-  async rollBackProblem(newProblem: Problem, id?: string): Promise<Problem> {
-    if (!id) {
+  async rollBackProblem(newProblem: Problem): Promise<Problem> {
+    if (!newProblem._id) {
       return await new this.problemModel(newProblem).save();
     }
     return await this.problemModel
-      .findByIdAndUpdate(id, newProblem, {
+      .findByIdAndUpdate(newProblem._id, newProblem, {
         returnDocument: 'after',
       })
       .exec();
@@ -64,7 +64,7 @@ export class ProblemRepository {
    * @param id - The ID of the Problem document.
    * @returns A Promise that resolves to the retrieved Problem document.
    */
-  async getProblem(id: string): Promise<Problem> {
+  async getProblem(id: Types.ObjectId): Promise<Problem> {
     return await this.problemModel.findById(id).exec();
   }
 
@@ -74,7 +74,7 @@ export class ProblemRepository {
    * @param solutionId - The ID of the solution to be added to the problem.
    * @returns A Promise that resolves to void.
    */
-  async addSolution(problemId: string, solutionId: string): Promise<void> {
+  async addSolution(problemId: Types.ObjectId, solutionId: string): Promise<void> {
     await this.problemModel.findByIdAndUpdate(
       problemId,
       { $push: { solutions: solutionId } },
@@ -88,7 +88,7 @@ export class ProblemRepository {
    * @param solutionId - The ID of the solution to be removed from the problem.
    * @returns A Promise that resolves to void
    */
-  async removeSolution(problemId: string, solutionId: string): Promise<void> {
+  async removeSolution(problemId: Types.ObjectId, solutionId: string): Promise<void> {
     await this.problemModel.findByIdAndUpdate(
       problemId,
       { $pull: { solutions: solutionId } },
@@ -101,7 +101,7 @@ export class ProblemRepository {
    * @param id - The ID of the Problem document.
    * @returns A Promise that resolves to the retrieved Problem document with its solutions.
    */
-  async getProblemWithSolutions(id: string): Promise<Problem> {
+  async getProblemWithSolutions(id: Types.ObjectId): Promise<Problem> {
     return await this.problemModel.findById(id).populate('solutions').exec();
   }
 
@@ -124,11 +124,16 @@ export class ProblemRepository {
    * @returns A Promise that resolves to the updated Problem document.
    */
   async updateCounts(newCount: UpdateProblemCountsDto): Promise<Problem> {
-    const query = { [newCount.countType]: newCount.count };
+    const { problemId, countType, count } = newCount;
+  
+    const update = { [countType]: count };
+  
     return await this.problemModel
-      .findByIdAndUpdate(newCount.problemId, {
-        returnDocument: 'after',
-      })
+      .findByIdAndUpdate(
+        problemId,
+        { $set: update },
+        { new: true },
+      )
       .exec();
   }
 
@@ -137,7 +142,7 @@ export class ProblemRepository {
    * @param id - The ID of the Problem document.
    * @returns A Promise that resolves to the deleted Problem document.
    */
-  async deleteProblem(id: string): Promise<Problem> {
+  async deleteProblem(id: Types.ObjectId): Promise<Problem> {
     return await this.problemModel.findByIdAndDelete(id).exec();
   }
 

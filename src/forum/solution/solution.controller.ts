@@ -14,6 +14,7 @@ export class SolutionController {
     @Param('id') id:Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
   ):Promise <Solution> {
+    id = new Types.ObjectId(id);
     return this.solutionService.createSolution(id, newSolution);
   }
 

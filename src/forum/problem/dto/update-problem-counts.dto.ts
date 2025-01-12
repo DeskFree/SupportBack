@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { Counts } from '../enums/counts.enum';
 
 export class UpdateProblemCountsDto {
-  problemId: string;
+  problemId: Types.ObjectId;
   countType: Counts;
   count: number;
 }

@@ -27,6 +27,8 @@ import { DatabaseException } from 'src/exceptions/database.exception';
 import { LogFailureException } from 'src/exceptions/log-failure.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
+import { DuplicateException } from 'src/exceptions/duplicate-problem.exception';
+import { Types } from 'mongoose';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
@@ -96,10 +98,11 @@ export class ProblemController {
   @Put('/:id')
   @UsePipes(new ProblemValidator())
   updateProblem(
-    @Param('id') id: string,
+    @Param('id') id: Types.ObjectId,
     @Body() updatedProblem: UpdateProblemDto,
   ): Promise<Problem> {
     try {
+      id = new Types.ObjectId(id)
       const problem = this.problemService.updateProblem(id, updatedProblem);
       if (!problem) {
         throw new BadRequestException({
@@ -120,8 +123,9 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the retrieval process.
    */
   @Get('/:id')
-  getProblem(@Param('id') id: string): Promise<Problem> {
+  getProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
     try {
+      id = new Types.ObjectId(id)
       const problem = this.problemService.getProblemWithSolutions(id);
 
       if (!problem) {
@@ -144,8 +148,9 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the deletion process.
    */
   @Delete('/:id')
-  deleteProblem(@Param('id') id: string): Promise<Problem> {
+  deleteProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
     try {
+      id = new Types.ObjectId(id)
       const problem = this.problemService.deleteProblem(id);
 
       if (!problem) {
@@ -169,10 +174,11 @@ export class ProblemController {
    */
   @Post('/upvote/:id/:isUpVote')
   voteProblem(
-    @Param('id') id: string,
+    @Param('id') id: Types.ObjectId,
     @Param('isUpVote') isUpVote: boolean,
   ): Promise<boolean> {
     try {
+      id = new Types.ObjectId(id)
       const isVoted = this.problemService.vote(id, isUpVote);
       if (isVoted) {
         throw new BadRequestException({
@@ -196,7 +202,8 @@ export class ProblemController {
     if (
       error instanceof BadRequestException ||
       error instanceof TooManyRequestsException ||
-      error instanceof UnauthorizedAccessException
+      error instanceof UnauthorizedAccessException ||
+      error instanceof DuplicateException
     ) {
       return new BadRequestException({
         statusCode: error.getStatus(),

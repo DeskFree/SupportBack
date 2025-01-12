@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { ProblemStatus } from '../enums/status.enum';
 import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
@@ -5,7 +6,7 @@ export class UpdateProblemDto {
   @IsNotEmpty()
   @IsString()
   @IsMongoId({ message: 'Invalid ID format' })
-  id: string;
+  id: Types.ObjectId;
 
   @IsOptional()
   @IsString()

@@ -1,20 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { SolutionRepository } from './repository/solution.repository';
 import { Solution } from './schemas/solution.schema';
 import { CreateSolutionDto } from './dto/create-solution.dto';
 import { Types } from 'mongoose';
 import { UpdateSolutionDto } from './dto/update-solution.dto';
+import { Problem } from '../problem/schemas/problem.schema';
+import { ProblemRepository } from '../problem/repository/problem.repository';
 
 @Injectable()
 export class SolutionService {
-  constructor(private solutionRepository: SolutionRepository) {}
+  constructor(
+    private solutionRepository: SolutionRepository,
+    private problemRepository: ProblemRepository,
+  ) {}
 
   async createSolution(
     id: Types.ObjectId,
     newSolution: CreateSolutionDto,
   ): Promise<Solution> {
+    const userId = '';
+    const exist = this.problemRepository.getProblem(id);
+    if (!exist) {
+      throw new NotFoundException();
+    }
+
     newSolution.problemId = id;
-    return await this.solutionRepository.createSolution(newSolution);
+    const problem = await this.solutionRepository
+      .createSolution(newSolution)
+      .then((problem) => {
+        return problem;
+      });
+
+    return problem;
   }
 
   async getSolutions(id: string): Promise<Solution[]> {

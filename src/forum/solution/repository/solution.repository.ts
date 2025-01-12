@@ -16,15 +16,15 @@ export class SolutionRepository {
   }
 
   async getSolutions(id: string): Promise<Solution[]> {
-    return await this.solutionModel.find({ problemId: id });
+    return await this.solutionModel.find({ problemId: id }).exec();
   }
 
   async deleteSolution(id: string): Promise<Solution> {
-    return await this.solutionModel.findByIdAndDelete(id);
+    return await this.solutionModel.findByIdAndDelete(id).exec();
   }
 
   async updateSolutions(id: string,updatedSolution:UpdateSolutionDto): Promise<Solution> {
     return await this.solutionModel.findByIdAndUpdate(id,updatedSolution,
-      { returnDocument: 'after' });
+      { returnDocument: 'after' }).exec();
   }
 }
