@@ -1,15 +1,15 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { RaisingService } from './raising.service';
-import { CreateProblemDto } from 'src/forum/problem/dto/create-problem.dto';
-import { UpdateProblemDto } from 'src/forum/problem/dto/update-problem.Dto';
+import { CreateRaisingDto } from './dto/create-raising.dto';
+import { UpdateRaisingDto } from './dto/update-raising.dto';
 
 @Controller('raising')
 export class RaisingController {
     constructor(private readonly raisingService: RaisingService) { }
 
     @Post()
-    create(@Body() createProblemDto: CreateProblemDto) {
-        return this.raisingService.create(createProblemDto);
+    create(@Body() raisingProblemDto: CreateRaisingDto) {
+        return this.raisingService.create(raisingProblemDto);
     }
 
     @Get()
@@ -23,8 +23,8 @@ export class RaisingController {
     }
 
     @Put(':id')
-    update(@Param('id') id: string, @Body() updateProblemDto: UpdateProblemDto) {
-        return this.raisingService.update(id, updateProblemDto);
+    update(@Param('id') id: string, @Body() updateRaisingDto: UpdateRaisingDto) {
+        return this.raisingService.update(id, updateRaisingDto);
     }
 
     @Delete(':id')
