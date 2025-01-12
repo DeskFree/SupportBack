@@ -7,8 +7,8 @@ import { UpdateRaisingDto } from './dto/update-raising.dto';
 export class RaisingService {
     constructor(private readonly raisingRepository: RaisingRepository) { }
 
-    async create(raisingProblemDto: CreateRaisingDto) {
-        return this.raisingRepository.create(raisingProblemDto);
+    async create(raisingDto: CreateRaisingDto) {
+        return this.raisingRepository.create(raisingDto);
     }
 
     async findAll() {
@@ -19,8 +19,8 @@ export class RaisingService {
         return this.raisingRepository.findOne(id);
     }
 
-    async update(id: string, updateProblemDto: UpdateRaisingDto) {
-        return this.raisingRepository.update(id, updateProblemDto);
+    async update(id: string, updateDto: UpdateRaisingDto) {
+        return this.raisingRepository.update(id, updateDto);
     }
 
     async remove(id: string) {
