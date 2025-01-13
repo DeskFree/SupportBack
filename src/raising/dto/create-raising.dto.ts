@@ -15,7 +15,7 @@ export class CreateRaisingDto {
 
     @IsNotEmpty()
     @IsString()
-    creator: string; // Creator of the ticket
+    creator: string; // Creator name of the ticket
 
     @IsNotEmpty()
     @IsString()
