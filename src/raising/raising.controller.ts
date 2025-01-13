@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, HttpCode, HttpStatus } from '@nestjs/common';
 import { RaisingService } from './raising.service';
 import { CreateRaisingDto } from './dto/create-raising.dto';
 import { UpdateRaisingDto } from './dto/update-raising.dto';
@@ -8,27 +8,32 @@ export class RaisingController {
     constructor(private readonly raisingService: RaisingService) { }
 
     @Post()
-    create(@Body() createRaisingDto: CreateRaisingDto) {
-        return this.raisingService.create(createRaisingDto);
+    @HttpCode(HttpStatus.CREATED)
+    async create(@Body() createRaisingDto: CreateRaisingDto) {
+        return await this.raisingService.create(createRaisingDto);
     }
 
     @Get()
-    findAll() {
-        return this.raisingService.findAll();
+    @HttpCode(HttpStatus.OK)
+    async getAll() {
+        return await this.raisingService.findAll();
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.raisingService.findOne(id);
+    @HttpCode(HttpStatus.OK)
+    async getById(@Param('id') id: string) {
+        return await this.raisingService.findOne(id);
     }
 
     @Put(':id')
-    update(@Param('id') id: string, @Body() updateRaisingDto: UpdateRaisingDto) {
-        return this.raisingService.update(id, updateRaisingDto);
+    @HttpCode(HttpStatus.OK)
+    async updateById(@Param('id') id: string, @Body() updateRaisingDto: UpdateRaisingDto) {
+        return await this.raisingService.update(id, updateRaisingDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.raisingService.remove(id);
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async deleteById(@Param('id') id: string) {
+        await this.raisingService.delete(id);
     }
 }

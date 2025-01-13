@@ -1,29 +1,47 @@
-import { Injectable } from '@nestjs/common';
-import { RaisingRepository } from './repository/raising.repository';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Raising } from './schemas/raising.schema';
 import { CreateRaisingDto } from './dto/create-raising.dto';
 import { UpdateRaisingDto } from './dto/update-raising.dto';
 
 @Injectable()
 export class RaisingService {
-    constructor(private readonly raisingRepository: RaisingRepository) { }
+    constructor(
+        @InjectModel(Raising.name) private readonly raisingModel: Model<Raising>,
+    ) { }
 
-    async create(createRaisingDto: CreateRaisingDto) {
-        return this.raisingRepository.create(createRaisingDto);
+    async create(createRaisingDto: CreateRaisingDto): Promise<Raising> {
+        const newRaising = new this.raisingModel(createRaisingDto);
+        return newRaising.save();
     }
 
-    async findAll() {
-        return this.raisingRepository.findAll();
+    async findAll(): Promise<Raising[]> {
+        return this.raisingModel.find().exec();
     }
 
-    async findOne(id: string) {
-        return this.raisingRepository.findOne(id);
+    async findOne(id: string): Promise<Raising> {
+        const raising = await this.raisingModel.findById(id).exec();
+        if (!raising) {
+            throw new NotFoundException(`Raising with ID ${id} not found.`);
+        }
+        return raising;
     }
 
-    async update(id: string, updateRaisingDto: UpdateRaisingDto) {
-        return this.raisingRepository.update(id, updateRaisingDto);
+    async update(id: string, updateRaisingDto: UpdateRaisingDto): Promise<Raising> {
+        const updatedRaising = await this.raisingModel
+            .findByIdAndUpdate(id, updateRaisingDto, { new: true })
+            .exec();
+        if (!updatedRaising) {
+            throw new NotFoundException(`Raising with ID ${id} not found.`);
+        }
+        return updatedRaising;
     }
 
-    async remove(id: string) {
-        return this.raisingRepository.remove(id);
+    async delete(id: string): Promise<void> {
+        const result = await this.raisingModel.findByIdAndDelete(id).exec();
+        if (!result) {
+            throw new NotFoundException(`Raising with ID ${id} not found.`);
+        }
     }
 }
