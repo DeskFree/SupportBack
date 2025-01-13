@@ -14,7 +14,7 @@ export class Notification {
   targetRoles: UserRole[]; // Roles that should receive the notification (if empty, common to all)
 
   @Prop({ required: true })
-  referenceID: string; // ID of the related ticket
+  referenceID: string; // ID of the related ticket or forum
 
   @Prop({ required: true })
   title: string; // Notification message
