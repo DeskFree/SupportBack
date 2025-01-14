@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { SolutionService } from './solution.service';
 import { CreateSolutionDto } from './dto/create-solution.dto';
 import { Types } from 'mongoose';
@@ -11,26 +20,31 @@ export class SolutionController {
 
   @Post('/:id')
   createSolution(
-    @Param('id') id:Types.ObjectId,
+    @Param('id') id: Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
-  ):Promise <Solution> {
+  ): Promise<Solution> {
     id = new Types.ObjectId(id);
     return this.solutionService.createSolution(id, newSolution);
   }
 
   @Get('/:id')
-  getAllSolutions(@Param('id') id: string):Promise <Solution[]> {
+  getAllSolutions(@Param('id') id: Types.ObjectId): Promise<Solution[]> {
+    id = new Types.ObjectId(id);
     return this.solutionService.getSolutions(id);
   }
 
   @Delete('/:id')
-  deleteSolution(@Param('id') id: Types.ObjectId):Promise <Solution> {
+  deleteSolution(@Param('id') id: Types.ObjectId): Promise<Solution> {
     id = new Types.ObjectId(id);
     return this.solutionService.deleteSolution(id);
   }
 
   @Put('/:id')
-  updateSolution(@Param('id') id: string,@Body() updatedSolution:UpdateSolutionDto):Promise <Solution> {
-    return this.solutionService.updateSolution(id,updatedSolution);
+  updateSolution(
+    @Param('id') id: Types.ObjectId,
+    @Body() updatedSolution: UpdateSolutionDto,
+  ): Promise<Solution> {
+    id = new Types.ObjectId(id);
+    return this.solutionService.updateSolution(id, updatedSolution);
   }
 }

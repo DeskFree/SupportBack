@@ -4,11 +4,10 @@ import { ProblemStatus } from '../enums/status.enum';
 
 export type ProblemDocument = Problem & Document;
 
-@Schema({ timestamps: true,})
+@Schema({ timestamps: true })
 export class Problem {
-  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId()})
+  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId() })
   _id: Types.ObjectId;
-
 
   @Prop({ type: String, required: true })
   title: string;
@@ -23,7 +22,10 @@ export class Problem {
   tags: string;
 
   @Prop({ type: Number, default: 0 })
-  votes: number;
+  upVotes: number;
+
+  @Prop({ type: Number, default: 0 })
+  downVotes: number;
 
   @Prop({ type: Number, default: 0 })
   views: number;

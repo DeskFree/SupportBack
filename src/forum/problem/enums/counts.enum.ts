@@ -1,5 +1,6 @@
 export enum Counts {
-    VOTES = "votes",
-    VIEWS = "views",
-    SOLUTION_COUNT = "solutionCount"
+  DOWN_VOTES = 'downVotes',
+  UP_VOTES = 'upVotes',
+  VIEWS = 'views',
+  SOLUTION_COUNT = 'solutionCount',
 }

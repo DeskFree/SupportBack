@@ -1,23 +1,52 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SolutionRepository } from './repository/solution.repository';
 import { Solution } from './schemas/solution.schema';
 import { CreateSolutionDto } from './dto/create-solution.dto';
-import { Types } from 'mongoose';
+import { DeleteResult, Types } from 'mongoose';
 import { UpdateSolutionDto } from './dto/update-solution.dto';
-import { ProblemService } from '../problem/problem.service';
 import { LogService } from '../log/log.service';
 import { LogActions } from '../log/enum/log-actions.enum';
 import { targetModels } from '../log/enum/log-models.enum';
 import { DatabaseException } from 'src/exceptions/database.exception';
+import { ProblemService } from '../problem/problem.service';
+import { UserValidatorUtil } from '../../utils/user-validator.util';
 import { error } from 'console';
+import { voteSolutionDto } from './dto/vote-solution.dto';
+import { VoteTypes } from './enum/vote-types.enum';
 
 @Injectable()
 export class SolutionService {
   constructor(
     private solutionRepository: SolutionRepository,
-    private problemService: ProblemService,
     private logService: LogService,
+
+    @Inject(forwardRef(() => ProblemService))
+    private problemService: ProblemService,
   ) {}
+
+  private async getSolution(id: Types.ObjectId): Promise<Solution> {
+    return await this.solutionRepository
+      .getSolution(id)
+      .then((solution) => {
+        if (!solution) {
+          throw new NotFoundException(
+            `No solution found for the problem with ID: ${id}. Please ensure the problem is correct and try again.`,
+          );
+        }
+        return solution;
+      })
+      .catch((error) => {
+        throw new DatabaseException(
+          `Failed to retrieve solution for problem ID: ${id}. Error details: ${error.message}`,
+        );
+      });
+  }
 
   private async rollBackSolution(solution: Solution): Promise<void> {
     await this.solutionRepository
@@ -96,18 +125,165 @@ export class SolutionService {
     return solution;
   }
 
-  async getSolutions(id: string): Promise<Solution[]> {
-    return await this.solutionRepository.getSolutions(id);
+  async deleteAllSolution(problemId: Types.ObjectId): Promise<DeleteResult> {
+    return await this.solutionRepository
+      .deleteAllSolution(problemId)
+      .catch((error) => {
+        throw new DatabaseException(
+          `Failed to delete all solutions associated with problem ID: ${problemId}. Error details: ${error.message}`,
+        );
+      });
+  }
+
+  async getSolutions(id: Types.ObjectId): Promise<Solution[]> {
+    return await this.solutionRepository
+      .getSolutions(id)
+      .then((solutions) => {
+        if (solutions.length === 0) {
+          throw new NotFoundException(
+            `No solutions found for the problem with ID: ${id}. Please ensure the problem is correct and try again.`,
+          );
+        }
+        return solutions;
+      })
+      .catch((error) => {
+        throw new DatabaseException(
+          `Failed to retrieve solutions for problem ID: ${id}. Error details: ${error.message}`,
+        );
+      });
   }
 
   async deleteSolution(id: Types.ObjectId): Promise<Solution> {
-    return await this.solutionRepository.deleteSolution(id);
+    const userId: Types.ObjectId = this.getUserID();
+    const originalSolution = await this.getSolution(id);
+    const isUserValid: boolean = UserValidatorUtil.validateUser(
+      userId,
+      originalSolution.createdBy,
+    );
+
+    const solution = await this.solutionRepository
+      .deleteSolution(id)
+      .then(async (solution) => {
+        const isProblemUpdated = await this.problemService.removeSolution(
+          originalSolution.problemId,
+          solution._id,
+        );
+        if (isProblemUpdated) {
+          const log = await this.logService.createLog(
+            {
+              userId: userId,
+              action: LogActions.DELETE,
+              targetModel: targetModels.SOLUTION,
+              targetId: solution._id,
+            },
+            () => this.rollBackSolution(originalSolution),
+          );
+          return solution;
+        } else {
+          this.rollBackSolution(solution);
+          throw new DatabaseException(
+            `Failed to delete solution for problem ID: ${id}. The problem was not updated correctly.`,
+          );
+        }
+      })
+      .catch((error) => {
+        this.logService.createLog({
+          userId: userId,
+          action: LogActions.DELETE,
+          details: `Unable to delete the solution: ${error.message}`,
+          isSuccess: false,
+          targetModel: targetModels.SOLUTION,
+        });
+        throw new DatabaseException(
+          `Failed to delete solution for problem ID: ${id}. Error details: ${error.message}`,
+        );
+      });
+
+    return solution;
   }
 
   async updateSolution(
-    id: string,
+    id: Types.ObjectId,
     updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
-    return await this.solutionRepository.updateSolutions(id, updatedSolution);
+    const userId: Types.ObjectId = this.getUserID();
+    const originalSolution = await this.getSolution(id);
+    UserValidatorUtil.validateUser(userId, originalSolution.createdBy);
+
+    const solution: Solution = await this.solutionRepository
+      .updateSolutions(id, updatedSolution)
+      .then(async (solution) => {
+        const log = await this.logService.createLog(
+          {
+            userId: userId,
+            action: LogActions.UPDATE,
+            targetModel: targetModels.SOLUTION,
+            targetId: solution._id,
+          },
+          () => this.rollBackSolution(originalSolution),
+        );
+        return solution;
+      })
+      .catch((error) => {
+        this.logService.createLog({
+          userId: userId,
+          action: LogActions.UPDATE,
+          details: `Unable to update the solution: ${error.message}`,
+          isSuccess: false,
+          targetModel: targetModels.SOLUTION,
+        });
+        throw new DatabaseException(
+          `Failed to update solution for problem ID: ${id}. Error details: ${error.message}`,
+        );
+      });
+    return solution;
+  }
+
+  async voteSolution(
+    solutionId: Types.ObjectId,
+    isUpVote: boolean,
+  ): Promise<Solution> {
+    const userId: Types.ObjectId = this.getUserID();
+
+    const originalSolution = await this.getSolution(solutionId);
+
+    const vote = isUpVote
+      ? originalSolution.upVotes + 1
+      : originalSolution.downVotes + 1;
+
+    const votedDetails: voteSolutionDto = {
+      voteType: isUpVote ? VoteTypes.UPVOTES : VoteTypes.DOWNVOTES,
+      solutionId,
+      vote,
+    };
+
+    const solution = await this.solutionRepository
+      .updateVote(votedDetails)
+      .then(async (solution) => {
+        const log = await this.logService.createLog(
+          {
+            userId: userId,
+            action: LogActions.VOTE,
+            targetModel: targetModels.SOLUTION,
+            targetId: solution._id,
+          },
+          () => this.rollBackSolution(originalSolution),
+        );
+        return solution;
+      })
+      .catch((error) => {
+        this.logService.createLog({
+          userId: userId,
+          action: LogActions.VOTE,
+          details: `Unable to vote the solution: ${error.message}`,
+          isSuccess: false,
+          targetModel: targetModels.SOLUTION,
+        });
+        throw new DatabaseException(
+          `Failed to vote solution for problem ID: ${solutionId}. Error details: ${error.message}`,
+        );
+      });
+
+    return solution;
   }
 }

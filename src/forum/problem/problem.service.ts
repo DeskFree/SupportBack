@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,15 +14,14 @@ import { LogService } from '../log/log.service';
 import { LogActions } from '../log/enum/log-actions.enum';
 import { targetModels } from '../log/enum/log-models.enum';
 import { DuplicateException } from '../../exceptions/duplicate-problem.exception';
-import { LogFailureException } from '../../exceptions/log-failure.exception';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
 import { Counts } from './enums/counts.enum';
 import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 import { DatabaseException } from 'src/exceptions/database.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
-import { Types } from 'mongoose';
-import { deprecate } from 'util';
+import { DeleteResult, Types } from 'mongoose';
+import { SolutionService } from '../solution/solution.service';
 
 /**
  * Service class for managing Problem entities.
@@ -37,9 +38,12 @@ export class ProblemService {
    * @param rateLimitService - The service for enforcing rate limits on certain operations.
    */
   constructor(
-    private problemRepository: ProblemRepository,
+    private readonly problemRepository: ProblemRepository,
     private readonly logService: LogService,
     private readonly rateLimitService: RateLimitService,
+
+    @Inject(forwardRef(() => SolutionService))
+    private solutionService: SolutionService,
   ) {}
 
   /**
@@ -78,11 +82,14 @@ export class ProblemService {
       .then(async (problem) => {
         const multiplier = isIncrease ? 1 : -1;
         switch (countType) {
-          case Counts.VOTES:
-            count = problem.votes + multiplier;
+          case Counts.DOWN_VOTES:
+            count = problem.downVotes + 1;
+            break;
+          case Counts.UP_VOTES:
+            count = problem.upVotes + 1;
             break;
           case Counts.VIEWS:
-            count = problem.views + multiplier;
+            count = problem.views + 1;
             break;
           case Counts.SOLUTION_COUNT:
             count = problem.solutionCount + multiplier;
@@ -206,7 +213,8 @@ export class ProblemService {
                   rollbackError,
                 );
                 throw new DatabaseException(
-                  `Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`)
+                  `Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`,
+                );
               });
           },
         );
@@ -340,7 +348,11 @@ export class ProblemService {
    * @returns A Promise that resolves to a boolean indicating whether the vote was successful.
    */
   async vote(id: Types.ObjectId, isUpVote: boolean): Promise<boolean> {
-    return this.changeCounts(id, isUpVote, Counts.VOTES);
+    return this.changeCounts(
+      id,
+      isUpVote,
+      isUpVote ? Counts.UP_VOTES : Counts.DOWN_VOTES,
+    );
   }
 
   /**
@@ -462,7 +474,9 @@ export class ProblemService {
         );
       });
 
-    // need to delete all solutions related to this problem
+    // need to change
+    const deleteResult: DeleteResult =
+      await this.solutionService.deleteAllSolution(id);
 
     return problem;
   }
