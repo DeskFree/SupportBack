@@ -10,6 +10,7 @@ import * as dotenv from 'dotenv';
 import { NotificationModule } from './notifications/notifications.module';
 import { EmailService } from './email/email.service';
 import { RaisingModule } from './raising/raising.module';
+import { ResponseModule } from './response/response.module';
 dotenv.config();
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
@@ -32,7 +33,8 @@ console.log('MONGO_URI:', process.env.MONGO_URI);
 
     NotificationModule,
     ForumModule,
-    RaisingModule
+    RaisingModule,
+    ResponseModule
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],
