@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, HttpCode, HttpStatus } from '@nestjs/common';
-import { RaisingService } from './raising.service';
-import { CreateRaisingDto } from './dto/create-raising.dto';
-import { UpdateRaisingDto } from './dto/update-raising.dto';
+import { CreateRaisingDto } from '../dto/create-raising.dto';
+import { UpdateRaisingDto } from '../dto/update-raising.dto';
+import { RaisingService } from '../service/raising.service';
 
 @Controller('raising')
 export class RaisingController {
