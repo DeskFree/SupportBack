@@ -19,6 +19,7 @@ import { UserValidatorUtil } from '../../utils/user-validator.util';
 import { error } from 'console';
 import { voteSolutionDto } from './dto/vote-solution.dto';
 import { VoteTypes } from './enum/vote-types.enum';
+import { SolutionActions } from './enum/solution-Actions.enum';
 
 @Injectable()
 export class SolutionService {
@@ -48,9 +49,12 @@ export class SolutionService {
       });
   }
 
-  private async rollBackSolution(solution: Solution): Promise<void> {
+  private async rollBackSolution(
+    solution: Solution,
+    actionToRollback: SolutionActions,
+  ): Promise<void> {
     await this.solutionRepository
-      .rollBackSolution(solution)
+      .rollBackSolution(solution, actionToRollback)
       .catch((rollbackError) => {
         console.error(
           `Rollback operation failed for the problem with ID: ${solution._id}.`,
@@ -176,11 +180,12 @@ export class SolutionService {
               targetModel: targetModels.SOLUTION,
               targetId: solution._id,
             },
-            () => this.rollBackSolution(originalSolution),
+            () =>
+              this.rollBackSolution(originalSolution, SolutionActions.DELETE),
           );
           return solution;
         } else {
-          this.rollBackSolution(solution);
+          this.rollBackSolution(solution, SolutionActions.DELETE);
           throw new DatabaseException(
             `Failed to delete solution for problem ID: ${id}. The problem was not updated correctly.`,
           );
@@ -220,7 +225,7 @@ export class SolutionService {
             targetModel: targetModels.SOLUTION,
             targetId: solution._id,
           },
-          () => this.rollBackSolution(originalSolution),
+          () => this.rollBackSolution(originalSolution, SolutionActions.UPDATE),
         );
         return solution;
       })
@@ -267,7 +272,7 @@ export class SolutionService {
             targetModel: targetModels.SOLUTION,
             targetId: solution._id,
           },
-          () => this.rollBackSolution(originalSolution),
+          () => this.rollBackSolution(originalSolution, SolutionActions.VOTE),
         );
         return solution;
       })

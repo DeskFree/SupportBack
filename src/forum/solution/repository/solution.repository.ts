@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateSolutionDto } from '../dto/create-solution.dto';
 import { UpdateSolutionDto } from '../dto/update-solution.dto';
 import { voteSolutionDto } from '../dto/vote-solution.dto';
+import { SolutionActions } from '../enum/solution-Actions.enum';
+import { DatabaseRollBackException } from 'src/exceptions/database-rollback.exception';
 
 @Injectable()
 export class SolutionRepository {
@@ -12,15 +14,28 @@ export class SolutionRepository {
     @InjectModel(Solution.name) private solutionModel: Model<SolutionDocument>,
   ) {}
 
-  async rollBackSolution(newSolution: Solution): Promise<Solution> {
-    if (!newSolution._id) {
-      return await new this.solutionModel(newSolution).save();
+  async rollBackSolution(
+    newSolution: Solution,
+    actionToRollback: SolutionActions,
+  ): Promise<Solution> {
+    switch (actionToRollback) {
+      case SolutionActions.CREATE:
+        return await this.solutionModel.findByIdAndDelete(newSolution._id);
+      case SolutionActions.UPDATE:
+        return await this.solutionModel
+          .findByIdAndUpdate(newSolution._id, newSolution)
+          .exec();
+      case SolutionActions.DELETE:
+        return await new this.solutionModel(newSolution).save();
+      case SolutionActions.VOTE:
+        return await this.solutionModel
+          .findByIdAndUpdate(newSolution._id, newSolution)
+          .exec();
+      default:
+        throw new DatabaseRollBackException(
+          `Invalid rollback action: ${actionToRollback}`,
+        );
     }
-    return await this.solutionModel
-      .findByIdAndUpdate(newSolution._id, newSolution, {
-        returnDocument: 'after',
-      })
-      .exec();
   }
 
   async createSolution(newSolution: CreateSolutionDto): Promise<Solution> {
