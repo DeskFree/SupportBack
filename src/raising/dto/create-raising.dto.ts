@@ -3,34 +3,34 @@ import { IsNotEmpty, IsString, IsOptional, IsArray, IsDateString } from 'class-v
 export class CreateRaisingDto {
     @IsNotEmpty()
     @IsString()
-    ticket_id: string; // Unique identifier for the ticket
+    ticket_id: string;
 
     @IsNotEmpty()
     @IsString()
-    title: string; // Title of the ticket
+    title: string;
 
     @IsNotEmpty()
     @IsString()
-    description: string; // Description of the ticket
+    description: string;
 
     @IsNotEmpty()
     @IsString()
-    creator: string; // Creator name of the ticket
+    creator: string;
 
     @IsNotEmpty()
     @IsString()
-    priority: string; // Priority of the ticket (High, Medium, Low)
+    priority: string;
 
-    @IsOptional() // Optional for create
+    @IsOptional()
     @IsString()
-    status?: string; // Status of the ticket (Open, Closed)
+    status?: string;
 
-    @IsOptional() // Optional for create
+    @IsOptional()
     @IsDateString()
-    created_at?: string; // Creation timestamp
+    created_at?: string;
 
-    @IsOptional() // Optional for create
+    @IsOptional()
     @IsArray()
     @IsString({ each: true })
-    responses?: string[]; // Array of response IDs
+    responses?: string[];
 }
