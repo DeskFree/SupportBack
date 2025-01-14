@@ -21,8 +21,43 @@ import { voteSolutionDto } from './dto/vote-solution.dto';
 import { VoteTypes } from './enum/vote-types.enum';
 import { SolutionActions } from './enum/solution-Actions.enum';
 
+/**
+ * @class SolutionService
+ * @description This service handles all operations related to solutions in the support desk project.
+ * It provides methods to create, retrieve, update, delete, and vote on solutions. It also manages
+ * logging and rollback operations in case of failures.
+ *
+ * @example
+ * // Example usage of SolutionService
+ * const solutionService = new SolutionService(solutionRepository, logService, problemService);
+ *
+ * // Create a new solution
+ * const newSolution = await solutionService.createSolution(problemId, createSolutionDto);
+ *
+ * // Get a solution by ID
+ * const solution = await solutionService.getSolution(solutionId);
+ *
+ * // Update a solution
+ * const updatedSolution = await solutionService.updateSolution(solutionId, updateSolutionDto);
+ *
+ * // Delete a solution
+ * const deletedSolution = await solutionService.deleteSolution(solutionId);
+ *
+ * // Vote on a solution
+ * const votedSolution = await solutionService.voteSolution(solutionId, true);
+ *
+ * @see SolutionRepository
+ * @see LogService
+ * @see ProblemService
+ */
 @Injectable()
 export class SolutionService {
+  /**
+   * @constructor
+   * @param {SolutionRepository} solutionRepository - The repository for the solution model.
+   * @param {LogService} logService - The service for logging operations.
+   * @param {ProblemService} problemService - The service for problem operations.
+   */
   constructor(
     private solutionRepository: SolutionRepository,
     private logService: LogService,
@@ -31,6 +66,15 @@ export class SolutionService {
     private problemService: ProblemService,
   ) {}
 
+  /**
+   * @method getSolution
+   * @description Retrieves a solution by its ID from the database.
+   *
+   * @param {Types.ObjectId} id - The ID of the solution to retrieve.
+   * @returns {Promise<Solution>} The solution retrieved from the database.
+   * @throws {NotFoundException} If no solution is found for the given ID.
+   * @throws {DatabaseException} If an error occurs while retrieving the solution.
+   */
   private async getSolution(id: Types.ObjectId): Promise<Solution> {
     return await this.solutionRepository
       .getSolution(id)
@@ -49,6 +93,15 @@ export class SolutionService {
       });
   }
 
+  /**
+   * @method rollBackSolution
+   * @description Rolls back a solution to its previous state in case of a failure.
+   *
+   * @param {Solution} solution - The solution to roll back.
+   * @param {SolutionActions} actionToRollback - The action to roll back.
+   * @returns {Promise<void>} A promise that resolves when the rollback operation is complete.
+   * @throws {DatabaseException} If an error occurs while rolling back the solution.
+   */
   private async rollBackSolution(
     solution: Solution,
     actionToRollback: SolutionActions,
@@ -67,10 +120,25 @@ export class SolutionService {
     return Promise.resolve();
   }
 
+  /**
+   * @method getUserID
+   * @description Retrieves the ID of the user who is currently logged in.
+   *
+   * @returns {Types.ObjectId} The ID of the user who is currently logged in.
+   */
   private getUserID(): Types.ObjectId {
     return new Types.ObjectId('6781080039c7df8d42da6ecd'); // Hardcoded for now as we don't have authentication yet
   }
 
+  /**
+   * @method createSolution
+   * @description Creates a new solution in the database.
+   *
+   * @param {Types.ObjectId} id - The ID of the problem for which the solution is being created.
+   * @param {CreateSolutionDto} newSolution - The details of the solution to create.
+   * @returns {Promise<Solution>} The solution created in the database.
+   * @throws {DatabaseException} If an error occurs while creating the solution.
+   */
   async createSolution(
     id: Types.ObjectId,
     newSolution: CreateSolutionDto,
@@ -129,6 +197,18 @@ export class SolutionService {
     return solution;
   }
 
+  /**
+   * @method deleteAllSolution
+   * @description Deletes all solutions associated with a problem from the database.
+   *
+   * @param problemId
+   *
+   * @throws {DatabaseException} If an error occurs while deleting the solutions.
+   * @throws {NotFoundException} If no solutions are found for the given problem ID.
+   * @throws {DatabaseException} If an error occurs while deleting the solutions.
+   * @returns {Promise<DeleteResult>} The result of the deletion operation.
+   *
+   */
   async deleteAllSolution(problemId: Types.ObjectId): Promise<DeleteResult> {
     return await this.solutionRepository
       .deleteAllSolution(problemId)
@@ -139,6 +219,15 @@ export class SolutionService {
       });
   }
 
+  /**
+   * @method getSolutions
+   * @description Retrieves all solutions associated with a problem from the database.
+   *
+   * @param id - The ID of the problem for which to retrieve solutions.
+   * @returns {Promise<Solution[]>} The solutions retrieved from the database.
+   * @throws {NotFoundException} If no solutions are found for the given problem ID.
+   * @throws {DatabaseException} If an error occurs while retrieving the solutions.
+   */
   async getSolutions(id: Types.ObjectId): Promise<Solution[]> {
     return await this.solutionRepository
       .getSolutions(id)
@@ -157,6 +246,16 @@ export class SolutionService {
       });
   }
 
+  /**
+   * @method deleteSolution
+   * @description Deletes a solution from the database.
+   *
+   * @param id - The ID of the solution to delete.
+   * @returns {Promise<Solution>} The solution deleted from the database.
+   * @throws {DatabaseException} If an error occurs while deleting the solution.
+   * @throws {NotFoundException} If no solution is found for the given ID.
+   * @throws {DatabaseException} If an error occurs while deleting the solution.
+   */
   async deleteSolution(id: Types.ObjectId): Promise<Solution> {
     const userId: Types.ObjectId = this.getUserID();
     const originalSolution = await this.getSolution(id);
@@ -207,6 +306,16 @@ export class SolutionService {
     return solution;
   }
 
+  /**
+   * @method updateSolution
+   * @description Updates a solution in the database.
+   *
+   * @param {Types.ObjectId} id - The ID of the solution to update.
+   * @param {UpdateSolutionDto} updatedSolution - The new details of the solution.
+   * @returns {Promise<Solution>} The updated solution.
+   * @throws {DatabaseException} If an error occurs while updating the solution.
+   * @throws {NotFoundException} If no solution is found for the given ID.
+   */
   async updateSolution(
     id: Types.ObjectId,
     updatedSolution: UpdateSolutionDto,
@@ -244,6 +353,18 @@ export class SolutionService {
     return solution;
   }
 
+  /**
+   * Casts a vote on a solution.
+   *
+   * @param {Types.ObjectId} solutionId - The ID of the solution to be voted on.
+   * @param {boolean} isUpVote - Indicates whether the vote is an upvote (true) or a downvote (false).
+   * @returns {Promise<Solution>} - A promise that resolves to the updated solution after the vote has been cast.
+   * @throws {DatabaseException} - Throws an exception if the vote operation fails.
+   *
+   * This method retrieves the current user's ID and the original solution based on the provided solution ID.
+   * It then determines the type of vote (upvote or downvote) and updates the solution's vote count accordingly.
+   * The method logs the voting action and handles any errors that occur during the voting process.
+   */
   async voteSolution(
     solutionId: Types.ObjectId,
     isUpVote: boolean,
