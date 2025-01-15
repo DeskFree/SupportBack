@@ -4,12 +4,14 @@ import { CreateNotificationDto } from '../dto/notificationCreateDto';
 import { NotificationRepository } from '../repository/notification.repository';
 import { EmailService } from 'src/email/email.service';
 import { UserRole } from '../enum/notifications.enum';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class NotificationService {
   constructor(
     private notificationRepository: NotificationRepository,
     private emailService: EmailService, // Inject the EmailService
+    private userService: UserService,
   ) {}
   async createNotification(createNotificationDto: CreateNotificationDto) {
     // Save the notification to the database
@@ -21,9 +23,11 @@ export class NotificationService {
       // Send an email notification
       const emailSubject = createNotificationDto.title;
       const emailText = createNotificationDto.message;
-      // const receiver =
+      const receiver = this.userService.findById(createNotificationDto.userId);
+      const receiverEmail = (await receiver).email;
+
       await this.emailService.sendEmail(
-        'user@example.com',
+        receiverEmail,
         emailSubject,
         emailText,
       ); // Replace with the user's email
