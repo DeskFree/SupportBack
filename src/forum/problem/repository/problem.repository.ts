@@ -81,6 +81,8 @@ export class ProblemRepository {
    * @returns A Promise that resolves to the retrieved Problem document.
    */
   async getProblem(id: Types.ObjectId): Promise<Problem> {
+    console.log('id', id);
+    console.log('id type', typeof id);
     return await this.problemModel.findById(id).exec();
   }
 

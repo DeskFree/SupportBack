@@ -1,18 +1,30 @@
-import { IsNotEmpty } from "class-validator";
-import { Types } from "mongoose";
+import { Equals, IsEmpty, IsNotEmpty, IsOptional } from 'class-validator';
+import { Types } from 'mongoose';
 
 export class CreateSolutionDto {
+  @IsEmpty()
+  _id: Types.ObjectId;
 
-  user
   @IsNotEmpty()
   problemId: Types.ObjectId;
+
   @IsNotEmpty()
   details: string;
 
-  votes: number;
-  
+  @IsOptional()
+  @Equals(0)
+  @IsEmpty()
+  upVotes?: number;
+
+  @IsOptional()
+  @Equals(0)
+  @IsEmpty()
+  downVotes?: number;
+
   @IsNotEmpty()
   createdBy: Types.ObjectId;
 
-  isAccepted: boolean;
+  @IsOptional()
+  @Equals(false)
+  isAccepted?: boolean;
 }

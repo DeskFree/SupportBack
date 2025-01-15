@@ -75,20 +75,20 @@ export class SolutionService {
    * @throws {NotFoundException} If no solution is found for the given ID.
    * @throws {DatabaseException} If an error occurs while retrieving the solution.
    */
-  private async getSolution(id: Types.ObjectId): Promise<Solution> {
+  private async getSolution(solutionId: Types.ObjectId): Promise<Solution> {
     return await this.solutionRepository
-      .getSolution(id)
+      .getSolution(solutionId)
       .then((solution) => {
         if (!solution) {
           throw new NotFoundException(
-            `No solution found for the problem with ID: ${id}. Please ensure the problem is correct and try again.`,
+            `Solution with ID: ${solutionId} not found. Please verify the ID and try again.`,
           );
         }
         return solution;
       })
       .catch((error) => {
         throw new DatabaseException(
-          `Failed to retrieve solution for problem ID: ${id}. Error details: ${error.message}`,
+          `An error occurred while retrieving the solution with ID: ${solutionId}. Error details: ${error.message}`,
         );
       });
   }

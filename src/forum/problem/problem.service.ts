@@ -19,10 +19,11 @@ import { Counts } from './enums/counts.enum';
 import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 import { DatabaseException } from 'src/exceptions/database.exception';
-import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
+import {} from 'src/exceptions/unauthorized-access.exception';
 import { DeleteResult, Types } from 'mongoose';
 import { SolutionService } from '../solution/solution.service';
 import { ProblemActions } from './enums/problem-actions.enum';
+import { UserValidatorUtil } from 'src/utils/user-validator.util';
 
 /**
  * Service class for managing Problem entities.
@@ -242,7 +243,7 @@ export class ProblemService {
   ): Promise<Problem> {
     updatedProblem.id = id;
 
-    const userId: any = this.getUserID();
+    const userId: Types.ObjectId = this.getUserID();
 
     const originalProblem = await this.problemRepository.getProblem(
       updatedProblem.id,
@@ -254,11 +255,10 @@ export class ProblemService {
       );
     }
 
-    if (originalProblem.createdBy !== userId) {
-      throw new UnauthorizedAccessException(
-        'You are not authorized to update this problem.',
-      );
-    }
+    const isValidUser = UserValidatorUtil.validateUser(
+      userId,
+      originalProblem.createdBy,
+    );
 
     const problem = await this.problemRepository
       .updateProblem(updatedProblem)
@@ -433,11 +433,10 @@ export class ProblemService {
       );
     }
 
-    if (originalProblem.createdBy !== userId) {
-      throw new UnauthorizedAccessException(
-        'You are not authorized to update this problem.',
-      );
-    }
+    const isValidUser = UserValidatorUtil.validateUser(
+      userId,
+      originalProblem.createdBy,
+    );
 
     const problem = await this.problemRepository
       .deleteProblem(id)

@@ -12,10 +12,9 @@ export class UserValidatorUtil {
    * @returns `true` if the user ID matches the reference owner ID.
    * @throws {UnauthorizedAccessException} If the user ID does not match the reference owner ID.
    */
-  static validateUser(
-    userId: Types.ObjectId,
-    refferenceOwnerId: Types.ObjectId,
-  ): boolean {
+  static validateUser(userId: any, refferenceOwnerId: any): boolean {
+    userId = userId.toString();
+    refferenceOwnerId = refferenceOwnerId.toString();
     if (userId !== refferenceOwnerId) {
       throw new UnauthorizedAccessException(
         'User does not have permission to perform this action.',
