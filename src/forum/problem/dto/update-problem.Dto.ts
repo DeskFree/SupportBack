@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { ProblemStatus } from '../enums/status.enum';
+import { ProblemStatus } from '../../enums';
 import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProblemDto {

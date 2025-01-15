@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Problem, ProblemDocument } from '../schemas/problem.schema';
+import { Problem, ProblemDocument } from '../schemas';
 import { Model, Types } from 'mongoose';
-import { CreateProblemDto } from '../dto/create-problem.dto';
-import { UpdateProblemDto } from '../dto/update-problem.Dto';
-import { UpdateProblemCountsDto } from '../dto/update-problem-counts.dto';
+import {
+  CreateProblemDto,
+  UpdateProblemDto,
+  UpdateProblemCountsDto,
+} from '../dto';
+import { ProblemActions } from '../../enums';
 
 /**
  * Repository class for managing Problem entities in the database.
@@ -40,15 +43,30 @@ export class ProblemRepository {
    * @param id - The ID of the problem to be updated (optional).
    * @returns A Promise that resolves to the rolled back Problem document.
    */
-  async rollBackProblem(newProblem: Problem): Promise<Problem> {
-    if (!newProblem._id) {
-      return await new this.problemModel(newProblem).save();
+  async rollBackProblem(
+    originalProblem: Problem,
+    action: ProblemActions,
+  ): Promise<Problem> {
+    switch (action) {
+      case ProblemActions.CREATE_PROBLEM:
+        return await this.problemModel.findByIdAndDelete(originalProblem._id);
+      case ProblemActions.UPDATE_PROBLEM:
+        return await this.problemModel
+          .findByIdAndUpdate(originalProblem._id, originalProblem)
+          .exec();
+      case ProblemActions.DELETE_PROBLEM:
+        return await new this.problemModel(originalProblem).save();
+      case ProblemActions.VIEW_PROBLEM:
+        return await this.problemModel
+          .findByIdAndUpdate(originalProblem._id, originalProblem)
+          .exec();
+      case ProblemActions.VOTE:
+        return await this.problemModel
+          .findByIdAndUpdate(originalProblem._id, originalProblem)
+          .exec();
+      default:
+        throw new Error(`Invalid rollback action: ${action}`);
     }
-    return await this.problemModel
-      .findByIdAndUpdate(newProblem._id, newProblem, {
-        returnDocument: 'after',
-      })
-      .exec();
   }
 
   /**
@@ -74,7 +92,10 @@ export class ProblemRepository {
    * @param solutionId - The ID of the solution to be added to the problem.
    * @returns A Promise that resolves to void.
    */
-  async addSolution(problemId: Types.ObjectId, solutionId: string): Promise<void> {
+  async addSolution(
+    problemId: Types.ObjectId,
+    solutionId: Types.ObjectId,
+  ): Promise<void> {
     await this.problemModel.findByIdAndUpdate(
       problemId,
       { $push: { solutions: solutionId } },
@@ -88,7 +109,10 @@ export class ProblemRepository {
    * @param solutionId - The ID of the solution to be removed from the problem.
    * @returns A Promise that resolves to void
    */
-  async removeSolution(problemId: Types.ObjectId, solutionId: string): Promise<void> {
+  async removeSolution(
+    problemId: Types.ObjectId,
+    solutionId: Types.ObjectId,
+  ): Promise<void> {
     await this.problemModel.findByIdAndUpdate(
       problemId,
       { $pull: { solutions: solutionId } },
@@ -125,15 +149,11 @@ export class ProblemRepository {
    */
   async updateCounts(newCount: UpdateProblemCountsDto): Promise<Problem> {
     const { problemId, countType, count } = newCount;
-  
+
     const update = { [countType]: count };
-  
+
     return await this.problemModel
-      .findByIdAndUpdate(
-        problemId,
-        { $set: update },
-        { new: true },
-      )
+      .findByIdAndUpdate(problemId, { $set: update }, { new: true })
       .exec();
   }
 

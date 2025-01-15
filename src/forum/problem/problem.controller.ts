@@ -4,31 +4,21 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   HttpStatus,
-  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
   Put,
   Query,
-  Res,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
-import { SearchProblemDto } from './dto/search-problem.dto';
-import { CreateProblemDto } from './dto/create-problem.dto';
-import { UpdateProblemDto } from './dto/update-problem.Dto';
-import { Problem } from './schemas/problem.schema';
-import { ProblemValidator } from '../pipes/problem-validator.pipe';
-import { ValidationError } from 'class-validator';
-import { DatabaseException } from 'src/exceptions/database.exception';
-import { LogFailureException } from 'src/exceptions/log-failure.exception';
-import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
-import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
-import { DuplicateException } from 'src/exceptions/duplicate-problem.exception';
+import { SearchProblemDto, CreateProblemDto, UpdateProblemDto } from './dto';
+import { Problem } from './schemas';
+import { ProblemValidator, StringToObjectIdConverter } from '../../pipes';
 import { Types } from 'mongoose';
+import { ErrorHandlerUtil } from 'src/utils';
+import { response } from 'express';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
@@ -51,11 +41,17 @@ export class ProblemController {
    */
   @Post()
   @UsePipes(new ProblemValidator())
-  async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
+  async createProblem(@Body() newProblem: CreateProblemDto): Promise<any> {
     try {
-      return await this.problemService.createProblem(newProblem);
+      const problem = await this.problemService.createProblem(newProblem);
+      return {
+        ...problem,
+        responseMetadata: {
+          message: 'Problem created successfully',
+        },
+      };
     } catch (error) {
-      throw this.handleError(error);
+      throw ErrorHandlerUtil.handleError(error);
     }
   }
 
@@ -67,7 +63,7 @@ export class ProblemController {
    */
   @Get()
   @UsePipes(new ProblemValidator())
-  async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
+  async getProblems(@Query() param: SearchProblemDto): Promise<any> {
     try {
       let problems;
       if (param && Object.keys(param).length) {
@@ -82,9 +78,12 @@ export class ProblemController {
             : 'No problems found';
         throw new NotFoundException(message);
       }
-      return problems;
+      return {
+        ...problems,
+        responseMetadata: { message: 'Problems retrieved successfully' },
+      };
     } catch (error) {
-      throw this.handleError(error);
+      throw ErrorHandlerUtil.handleError(error);
     }
   }
 
@@ -97,22 +96,27 @@ export class ProblemController {
    */
   @Put('/:id')
   @UsePipes(new ProblemValidator())
-  updateProblem(
-    @Param('id') id: Types.ObjectId,
+  async updateProblem(
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Body() updatedProblem: UpdateProblemDto,
-  ): Promise<Problem> {
+  ): Promise<any> {
     try {
-      id = new Types.ObjectId(id)
-      const problem = this.problemService.updateProblem(id, updatedProblem);
+      const problem = await this.problemService.updateProblem(
+        id,
+        updatedProblem,
+      );
       if (!problem) {
         throw new BadRequestException({
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Failed to update problem with ID '${id}'. The problem may not exist or there was an issue processing the update.`,
         });
       }
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: { message: 'Problem updated successfully' },
+      };
     } catch (error) {
-      throw this.handleError(error);
+      throw ErrorHandlerUtil.handleError(error);
     }
   }
 
@@ -123,10 +127,11 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the retrieval process.
    */
   @Get('/:id')
-  getProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
+  async getProblem(
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
+  ): Promise<any> {
     try {
-      id = new Types.ObjectId(id)
-      const problem = this.problemService.getProblemWithSolutions(id);
+      const problem = await this.problemService.getProblemWithSolutions(id);
 
       if (!problem) {
         throw new NotFoundException({
@@ -135,9 +140,12 @@ export class ProblemController {
         });
       }
 
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: { message: 'Problem retrieved successfully' },
+      };
     } catch (error) {
-      throw this.handleError(error);
+      throw ErrorHandlerUtil.handleError(error);
     }
   }
 
@@ -148,10 +156,11 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the deletion process.
    */
   @Delete('/:id')
-  deleteProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
+  async deleteProblem(
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
+  ): Promise<any> {
     try {
-      id = new Types.ObjectId(id)
-      const problem = this.problemService.deleteProblem(id);
+      const problem = await this.problemService.deleteProblem(id);
 
       if (!problem) {
         throw new NotFoundException({
@@ -159,9 +168,12 @@ export class ProblemController {
           message: `Failed to delete problem with ID '${id}'. The problem may not exist or there was an issue processing the read.`,
         });
       }
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: { message: 'Problem deleted successfully' },
+      };
     } catch (error) {
-      throw this.handleError(error);
+      throw ErrorHandlerUtil.handleError(error);
     }
   }
 
@@ -172,62 +184,26 @@ export class ProblemController {
    * @returns A Promise that resolves to a boolean indicating whether the vote was successful.
    * @throws HttpException - If the problem does not exist or an error occurs during the voting process.
    */
-  @Post('/upvote/:id/:isUpVote')
-  voteProblem(
-    @Param('id') id: Types.ObjectId,
+  @Put('/upvote/:id/:isUpVote')
+  async voteProblem(
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Param('isUpVote') isUpVote: boolean,
-  ): Promise<boolean> {
+  ): Promise<any> {
     try {
-      id = new Types.ObjectId(id)
-      const isVoted = this.problemService.vote(id, isUpVote);
-      if (isVoted) {
-        throw new BadRequestException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: `Failed to upvote problem with ID '${id}'. The problem may not exist or there was an issue processing the upvote.`,
-        });
+      const isVoted = await this.problemService.vote(id, isUpVote);
+      if (!isVoted) {
+        throw new BadRequestException(
+          `Failed to upvote problem with ID '${id}'. The problem may not exist or there was an issue processing the ${isUpVote ? 'up vote' : 'down vote'}.`,
+        );
       }
 
-      return isVoted;
+      return {
+        responseMetadata: {
+          message: `Problem ${isUpVote ? 'upvoted' : 'downvoted'} successfully`,
+        },
+      };
     } catch (error) {
-      throw this.handleError(error);
+      throw ErrorHandlerUtil.handleError(error);
     }
-  }
-
-  /**
-   * Handles errors and maps them to appropriate HTTP exceptions.
-   * @param error - The error that occurred.
-   * @returns An HttpException with the appropriate status code and message.
-   */
-  private handleError(error: Error): HttpException {
-    if (
-      error instanceof BadRequestException ||
-      error instanceof TooManyRequestsException ||
-      error instanceof UnauthorizedAccessException ||
-      error instanceof DuplicateException
-    ) {
-      return new BadRequestException({
-        statusCode: error.getStatus(),
-        message: error.message,
-      });
-    }
-    if (error instanceof NotFoundException) {
-      return new NotFoundException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Resource not found',
-      });
-    }
-    if (
-      error instanceof DatabaseException ||
-      error instanceof LogFailureException
-    ) {
-      return new InternalServerErrorException({
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: error.message,
-      });
-    }
-    return new InternalServerErrorException({
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: `Something Went Wrong : ${error.message}`,
-    });
   }
 }
