@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UsePipes,
 } from '@nestjs/common';
 import { SolutionService } from './solution.service';
@@ -24,16 +25,22 @@ export class SolutionController {
   createSolution(
     @Param('id', StringToObjectIdConverter) problemId: Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
+    @Res() res,
   ): Promise<Solution> {
-    problemId = new Types.ObjectId(problemId);
-    return this.solutionService.createSolution(problemId, newSolution);
+    try {
+      const solution = this.solutionService.createSolution(
+        problemId,
+        newSolution,
+      );
+
+      return solution;
+    } catch (error) {}
   }
 
   @Get('/:id')
   getAllSolutions(
     @Param('id', StringToObjectIdConverter) problemId: Types.ObjectId,
   ): Promise<Solution[]> {
-    problemId = new Types.ObjectId(problemId);
     return this.solutionService.getSolutions(problemId);
   }
 
@@ -41,7 +48,6 @@ export class SolutionController {
   deleteSolution(
     @Param('id', StringToObjectIdConverter) solutionId: Types.ObjectId,
   ): Promise<Solution> {
-    solutionId = new Types.ObjectId(solutionId);
     return this.solutionService.deleteSolution(solutionId);
   }
 

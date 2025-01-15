@@ -29,6 +29,7 @@ import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.
 import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
 import { DuplicateException } from 'src/exceptions/duplicate-problem.exception';
 import { Types } from 'mongoose';
+import { StringToObjectIdConverter } from '../pipes/id-string-to-obj-converter.pipe';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
@@ -98,11 +99,10 @@ export class ProblemController {
   @Put('/:id')
   @UsePipes(new ProblemValidator())
   updateProblem(
-    @Param('id') id: Types.ObjectId,
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Body() updatedProblem: UpdateProblemDto,
   ): Promise<Problem> {
     try {
-      id = new Types.ObjectId(id)
       const problem = this.problemService.updateProblem(id, updatedProblem);
       if (!problem) {
         throw new BadRequestException({
@@ -123,9 +123,10 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the retrieval process.
    */
   @Get('/:id')
-  getProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
+  getProblem(
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
+  ): Promise<Problem> {
     try {
-      id = new Types.ObjectId(id)
       const problem = this.problemService.getProblemWithSolutions(id);
 
       if (!problem) {
@@ -148,9 +149,10 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the deletion process.
    */
   @Delete('/:id')
-  deleteProblem(@Param('id') id: Types.ObjectId): Promise<Problem> {
+  deleteProblem(
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
+  ): Promise<Problem> {
     try {
-      id = new Types.ObjectId(id)
       const problem = this.problemService.deleteProblem(id);
 
       if (!problem) {
@@ -174,11 +176,10 @@ export class ProblemController {
    */
   @Post('/upvote/:id/:isUpVote')
   voteProblem(
-    @Param('id') id: Types.ObjectId,
+    @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Param('isUpVote') isUpVote: boolean,
   ): Promise<boolean> {
     try {
-      id = new Types.ObjectId(id)
       const isVoted = this.problemService.vote(id, isUpVote);
       if (isVoted) {
         throw new BadRequestException({
@@ -213,7 +214,7 @@ export class ProblemController {
     if (error instanceof NotFoundException) {
       return new NotFoundException({
         statusCode: HttpStatus.NOT_FOUND,
-        message: 'Resource not found',
+        message: `Resource not found : ${error.message}`,
       });
     }
     if (
