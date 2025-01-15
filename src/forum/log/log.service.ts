@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { LogActions } from './enum/log-actions.enum';
-import { Log } from './schemas/log.schema';
-import { LogRepository } from './repository/log.repository';
-import { CreateLogDto } from './dto/create-log.dto';
-import { targetModels } from './enum/log-models.enum';
-import { LogFailureException } from 'src/exceptions/log-failure.exception';
+import { Log } from './schemas';
+import { LogRepository } from './repository';
+import { CreateLogDto } from './dto';
+import { targetModels, LogActions } from './enum';
+import { LogFailureException } from 'src/exceptions';
 
 @Injectable()
 export class LogService {
