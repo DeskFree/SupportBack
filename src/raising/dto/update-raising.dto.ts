@@ -1,21 +1,27 @@
-import { IsOptional, IsString, IsArray, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsArray, IsDateString, IsEnum, MinLength, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { DocumentDto } from './create-raising.dto';
+import { Priority, Status } from '../types/enums';
 
 export class UpdateRaisingDto {
   @IsOptional()
   @IsString()
+  @MinLength(5)
+  @MaxLength(100)
   title?: string;
 
   @IsOptional()
   @IsString()
+  @MinLength(10)
   description?: string;
 
   @IsOptional()
-  @IsString()
-  priority?: string;
+  @IsEnum(Priority)
+  priority?: Priority;
 
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(Status)
+  status?: Status;
 
   @IsOptional()
   @IsDateString()
@@ -25,4 +31,9 @@ export class UpdateRaisingDto {
   @IsArray()
   @IsString({ each: true })
   responses?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => DocumentDto)
+  documents?: DocumentDto[];
 }
