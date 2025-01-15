@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -11,10 +12,9 @@ import {
 import { SolutionService } from './solution.service';
 import { CreateSolutionDto, UpdateSolutionDto } from './dto';
 import { Types } from 'mongoose';
-import { Solution, SolutionWithMetadata } from './schemas';
+import { Solution } from './schemas';
 import { StringToObjectIdConverter } from '../pipes';
 import { ErrorHandlerUtil } from 'src/utils/error-handler.util';
-import { ProblemResponseDto } from '../problem/dto/response-problem.dto';
 
 @Controller('forum/solution')
 export class SolutionController {
@@ -24,7 +24,7 @@ export class SolutionController {
   async createSolution(
     @Param('id', StringToObjectIdConverter) problemId: Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
-  ): Promise<SolutionWithMetadata> {
+  ): Promise<any> {
     try {
       const solution = await this.solutionService.createSolution(
         problemId,
@@ -39,7 +39,9 @@ export class SolutionController {
 
       return {
         ...solution,
-        responseMetadata: { message: 'Solution created successfully' },
+        responseMetadata: {
+          message: 'Solution created successfully',
+        },
       };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
@@ -47,17 +49,49 @@ export class SolutionController {
   }
 
   @Get('/:id')
-  getAllSolutions(
+  async getAllSolutions(
     @Param('id', StringToObjectIdConverter) problemId: Types.ObjectId,
-  ): Promise<Solution[]> {
-    return this.solutionService.getSolutions(problemId);
+  ): Promise<any> {
+    const solutions = await this.solutionService
+      .getSolutions(problemId)
+      .then((solutions) => {
+        if (!solutions || solutions.length === 0) {
+          throw new NotFoundException(
+            'No solutions found for the specified problem.',
+          );
+        }
+        return solutions;
+      })
+      .catch((error) => {
+        throw ErrorHandlerUtil.handleError(error);
+      });
+    return {
+      ...solutions,
+      responseMetadata: { message: 'Solutions retrieved successfully' },
+    };
   }
 
   @Delete('/:id')
   deleteSolution(
     @Param('id', StringToObjectIdConverter) solutionId: Types.ObjectId,
-  ): Promise<Solution> {
-    return this.solutionService.deleteSolution(solutionId);
+  ): Promise<any> {
+    const solution = this.solutionService
+      .deleteSolution(solutionId)
+      .then((solution) => {
+        if (!solution) {
+          throw new NotFoundException(
+            'Solution deletion failed: No solution found with the specified ID.',
+          );
+        }
+        return {
+          ...solution,
+          responseMetadata: { message: 'Solution deleted successfully' },
+        };
+      })
+      .catch((error) => {
+        throw ErrorHandlerUtil.handleError(error);
+      });
+    return solution;
   }
 
   @Put('/:id')
@@ -65,6 +99,21 @@ export class SolutionController {
     @Param('id', StringToObjectIdConverter) solutionId: Types.ObjectId,
     @Body() updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
-    return this.solutionService.updateSolution(solutionId, updatedSolution);
+    return this.solutionService
+      .updateSolution(solutionId, updatedSolution)
+      .then((solution) => {
+        if (!solution) {
+          throw new NotFoundException(
+            'Solution update failed: No solution found with the specified ID.',
+          );
+        }
+        return {
+          ...solution,
+          responseMetadata: { message: 'Solution updated successfully' },
+        };
+      })
+      .catch((error) => {
+        throw ErrorHandlerUtil.handleError(error);
+      });
   }
 }
