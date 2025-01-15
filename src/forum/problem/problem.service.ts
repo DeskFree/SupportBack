@@ -22,6 +22,7 @@ import { DatabaseException } from 'src/exceptions/database.exception';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
 import { DeleteResult, Types } from 'mongoose';
 import { SolutionService } from '../solution/solution.service';
+import { ProblemActions } from './enums/problem-actions.enum';
 
 /**
  * Service class for managing Problem entities.
@@ -127,9 +128,12 @@ export class ProblemService {
    * @returns A Promise that resolves when the rollback operation is complete.
    * @throws DatabaseException - If the rollback operation fails.
    */
-  private async rollbackProblem(problem: Problem): Promise<void> {
+  private async rollbackProblem(
+    problem: Problem,
+    actionToRollback: ProblemActions,
+  ): Promise<void> {
     await this.problemRepository
-      .rollBackProblem(problem)
+      .rollBackProblem(problem, actionToRollback)
       .catch((rollbackError) => {
         console.error(
           `Rollback operation failed for the problem with ID: ${problem._id}.`,
@@ -204,19 +208,7 @@ export class ProblemService {
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
           },
-          async () => {
-            return await this.problemRepository
-              .deleteProblem(problem._id)
-              .catch((rollbackError) => {
-                console.error(
-                  `Rollback operation failed for the problem with ID: ${problem._id}.`,
-                  rollbackError,
-                );
-                throw new DatabaseException(
-                  `Failed to rollback changes for the problem with ID: ${problem._id}. Error details: ${rollbackError.message}`,
-                );
-              });
-          },
+          () => this.rollbackProblem(problem, ProblemActions.CREATE_PROBLEM),
         );
         return problem;
       })
@@ -278,7 +270,7 @@ export class ProblemService {
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
           },
-          () => this.rollbackProblem(problem),
+          () => this.rollbackProblem(problem, ProblemActions.UPDATE_PROBLEM),
         );
         return problem;
       })
@@ -457,7 +449,7 @@ export class ProblemService {
             targetId: problem._id,
             targetModel: targetModels.PROBLEM,
           },
-          () => this.rollbackProblem(problem),
+          () => this.rollbackProblem(problem, ProblemActions.DELETE_PROBLEM),
         );
         return problem;
       })
