@@ -4,8 +4,8 @@ import { Model } from 'mongoose';
 import { CreateRaisingDto } from '../dto/create-raising.dto';
 import { Raising } from '../schemas/raising.schema';
 import { UpdateRaisingDto } from '../dto/update-raising.dto';
-import { TicketNotFoundException, DuplicateTicketException, InvalidDocumentException } from '../exceptions/raising.exceptions';
-import { TicketGenerator } from '../utils/ticket-generator';
+import { TicketNotFoundException, DuplicateTicketException, InvalidDocumentException } from '../../exceptions/raising.exceptions';
+import { TicketGenerator } from '../../utils/ticket-generator';
 
 interface SuccessResponse {
     success: boolean;
