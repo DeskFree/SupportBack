@@ -81,6 +81,9 @@ export class SolutionService {
         return solution;
       })
       .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
         throw new DatabaseException(
           `An error occurred while retrieving the solution with ID: ${solutionId}. Error details: ${error.message}`,
         );
@@ -183,6 +186,9 @@ export class SolutionService {
           isSuccess: false,
           targetModel: targetModels.SOLUTION,
         });
+        if (error instanceof DatabaseException) {
+          throw error;
+        }
         throw new DatabaseException(
           `Unable to create the solution: ${error.message}`,
         );
@@ -226,7 +232,7 @@ export class SolutionService {
     return await this.solutionRepository
       .getSolutions(problemId)
       .then((solutions) => {
-        if (solutions.length === 0) {
+        if (!solutions || solutions.length === 0) {
           throw new NotFoundException(
             `No solutions found for the problem with ID: ${problemId}. Please ensure the problem is correct and try again.`,
           );
@@ -234,6 +240,12 @@ export class SolutionService {
         return solutions;
       })
       .catch((error) => {
+        if (
+          error instanceof NotFoundException ||
+          error instanceof DatabaseException
+        ) {
+          throw error;
+        }
         throw new DatabaseException(
           `Failed to retrieve solutions for problem ID: ${problemId}. Error details: ${error.message}`,
         );
@@ -292,6 +304,9 @@ export class SolutionService {
           isSuccess: false,
           targetModel: targetModels.SOLUTION,
         });
+        if (error instanceof DatabaseException) {
+          throw error;
+        }
         throw new DatabaseException(
           `Failed to delete solution for problem ID: ${solutionId}. Error details: ${error.message}`,
         );
@@ -407,7 +422,6 @@ export class SolutionService {
   //   return solution;
   // }
 
-  
   /**
    * Votes on a solution by either upvoting or downvoting it.
    *
@@ -443,6 +457,9 @@ export class SolutionService {
         return true;
       })
       .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw error;
+        }
         throw new DatabaseException(
           `Failed to vote solution with ID '${solutionId}'. The solution may not exist or there was an issue processing the vote.`,
         );
