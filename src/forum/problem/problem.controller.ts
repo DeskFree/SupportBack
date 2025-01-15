@@ -4,9 +4,7 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   HttpStatus,
-  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -14,21 +12,13 @@ import {
   Query,
   Res,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
-import {
-  DatabaseException,
-  LogFailureException,
-  UnauthorizedAccessException,
-  TooManyRequestsException,
-  DuplicateException,
-} from 'src/exceptions';
 import { ProblemService } from './problem.service';
 import { SearchProblemDto, CreateProblemDto, UpdateProblemDto } from './dto';
 import { Problem } from './schemas';
 import { ProblemValidator, StringToObjectIdConverter } from '../pipes';
 import { Types } from 'mongoose';
-import { ErrorHandlerUtil } from 'src/utils/error-handler.util';
+import { ErrorHandlerUtil } from 'src/utils';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
