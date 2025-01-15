@@ -319,7 +319,7 @@ export class SolutionService {
     UserValidatorUtil.validateUser(userId, originalSolution.createdBy);
 
     const solution: Solution = await this.solutionRepository
-      .updateSolutions(solutionId, updatedSolution)
+      .updateSolution(solutionId, updatedSolution)
       .then(async (solution) => {
         const log = await this.logService.createLog(
           {
@@ -359,51 +359,116 @@ export class SolutionService {
    * It then determines the type of vote (upvote or downvote) and updates the solution's vote count accordingly.
    * The method logs the voting action and handles any errors that occur during the voting process.
    */
+  // async voteSolution(
+  //   solutionId: Types.ObjectId,
+  //   isUpVote: boolean,
+  // ): Promise<Solution> {
+  //   const userId: Types.ObjectId = this.getUserID();
+
+  //   const originalSolution = await this.getSolution(solutionId);
+
+  //   const vote = isUpVote
+  //     ? originalSolution.upVotes + 1
+  //     : originalSolution.downVotes + 1;
+
+  //   const votedDetails: voteSolutionDto = {
+  //     voteType: isUpVote ? VoteTypes.UPVOTES : VoteTypes.DOWNVOTES,
+  //     solutionId,
+  //     vote,
+  //   };
+
+  //   const solution = await this.solutionRepository
+  //     .updateVote(votedDetails)
+  //     .then(async (solution) => {
+  //       const log = await this.logService.createLog(
+  //         {
+  //           userId: userId,
+  //           action: LogActions.VOTE,
+  //           targetModel: targetModels.SOLUTION,
+  //           targetId: solution._id,
+  //         },
+  //         () => this.rollBackSolution(originalSolution, SolutionActions.VOTE),
+  //       );
+  //       return solution;
+  //     })
+  //     .catch((error) => {
+  //       this.logService.createLog({
+  //         userId: userId,
+  //         action: LogActions.VOTE,
+  //         details: `Unable to vote the solution: ${error.message}`,
+  //         isSuccess: false,
+  //         targetModel: targetModels.SOLUTION,
+  //       });
+  //       throw new DatabaseException(
+  //         `Failed to vote solution for problem ID: ${solutionId}. Error details: ${error.message}`,
+  //       );
+  //     });
+
+  //   return solution;
+  // }
+
+  
+  /**
+   * Votes on a solution by either upvoting or downvoting it.
+   *
+   * @param {Types.ObjectId} solutionId - The ID of the solution to vote on.
+   * @param {boolean} isUpVote - A boolean indicating whether the vote is an upvote (true) or a downvote (false).
+   * @returns {Promise<boolean>} - A promise that resolves to true if the vote was successful, otherwise throws an exception.
+   * @throws {NotFoundException} - If the solution with the given ID is not found.
+   * @throws {DatabaseException} - If there is an issue processing the vote.
+   */
   async voteSolution(
     solutionId: Types.ObjectId,
     isUpVote: boolean,
-  ): Promise<Solution> {
-    const userId: Types.ObjectId = this.getUserID();
+  ): Promise<boolean> {
+    const solution = await this.solutionRepository.getSolution(solutionId);
+    if (!solution) {
+      throw new NotFoundException(
+        `Solution with ID: ${solutionId} not found. Please verify the ID and try again.`,
+      );
+    }
 
-    const originalSolution = await this.getSolution(solutionId);
+    const query = isUpVote
+      ? { upVotes: solution.upVotes + 1 }
+      : { downVotes: solution.downVotes + 1 };
 
-    const vote = isUpVote
-      ? originalSolution.upVotes + 1
-      : originalSolution.downVotes + 1;
-
-    const votedDetails: voteSolutionDto = {
-      voteType: isUpVote ? VoteTypes.UPVOTES : VoteTypes.DOWNVOTES,
-      solutionId,
-      vote,
-    };
-
-    const solution = await this.solutionRepository
-      .updateVote(votedDetails)
-      .then(async (solution) => {
-        const log = await this.logService.createLog(
-          {
-            userId: userId,
-            action: LogActions.VOTE,
-            targetModel: targetModels.SOLUTION,
-            targetId: solution._id,
-          },
-          () => this.rollBackSolution(originalSolution, SolutionActions.VOTE),
-        );
-        return solution;
+    return await this.solutionRepository
+      .voteSolution(solutionId, solution)
+      .then((result) => {
+        if (!result) {
+          throw new NotFoundException(
+            `Failed to vote solution with ID '${solutionId}'. The solution may not exist or there was an issue processing the vote.`,
+          );
+        }
+        return true;
       })
       .catch((error) => {
-        this.logService.createLog({
-          userId: userId,
-          action: LogActions.VOTE,
-          details: `Unable to vote the solution: ${error.message}`,
-          isSuccess: false,
-          targetModel: targetModels.SOLUTION,
-        });
         throw new DatabaseException(
-          `Failed to vote solution for problem ID: ${solutionId}. Error details: ${error.message}`,
+          `Failed to vote solution with ID '${solutionId}'. The solution may not exist or there was an issue processing the vote.`,
         );
       });
 
-    return solution;
+    //   if (isUpVote) {
+    //     return await this.solutionRepository.upVote(solutionId).then((result) => {
+    //       if (!result) {
+    //         throw new DatabaseException(
+    //           `Failed to upvote solution with ID '${solutionId}'. The solution may not exist or there was an issue processing the up vote.`,
+    //         );
+    //       }
+    //       return true;
+    //     });
+    //   } else {
+    //     return await this.solutionRepository
+    //       .downVote(solutionId)
+    //       .then((result) => {
+    //         if (!result) {
+    //           throw new DatabaseException(
+    //             `Failed to downvote solution with ID '${solutionId}'. The solution may not exist or there was an issue processing the down vote.`,
+    //           );
+    //         }
+    //         return true;
+    //       });
+    //   }
+    //   return Promise.resolve(true);
   }
 }

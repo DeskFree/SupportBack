@@ -174,18 +174,17 @@ export class ProblemController {
    * @returns A Promise that resolves to a boolean indicating whether the vote was successful.
    * @throws HttpException - If the problem does not exist or an error occurs during the voting process.
    */
-  @Post('/upvote/:id/:isUpVote')
+  @Put('/upvote/:id/:isUpVote')
   voteProblem(
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Param('isUpVote') isUpVote: boolean,
   ): Promise<boolean> {
     try {
       const isVoted = this.problemService.vote(id, isUpVote);
-      if (isVoted) {
-        throw new BadRequestException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: `Failed to upvote problem with ID '${id}'. The problem may not exist or there was an issue processing the upvote.`,
-        });
+      if (!isVoted) {
+        throw new BadRequestException(
+          `Failed to upvote problem with ID '${id}'. The problem may not exist or there was an issue processing the ${isUpVote ? 'up vote' : 'down vote'}.`,
+        );
       }
 
       return isVoted;

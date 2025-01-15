@@ -66,12 +66,23 @@ export class SolutionRepository {
       .exec();
   }
 
-  async updateSolutions(
+  async updateSolution(
     solutionId: Types.ObjectId,
     updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
     return await this.solutionModel
       .findByIdAndUpdate(solutionId, updatedSolution, {
+        returnDocument: 'after',
+      })
+      .exec();
+  }
+
+  async voteSolution(
+    solutionId: Types.ObjectId,
+    query: any,
+  ): Promise<Solution> {
+    return await this.solutionModel
+      .findByIdAndUpdate(solutionId, query, {
         returnDocument: 'after',
       })
       .exec();
