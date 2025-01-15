@@ -166,13 +166,19 @@ export class SolutionController {
   }
 
   @Put('/upvote/:id/:isUpVote')
+ 
   /**
-   * Handles voting on a problem solution.
+   * Handles the voting of a solution by its ID.
    *
-   * @param id - The ObjectId of the solution to be voted on, converted from a string.
+   * @param id - The ObjectId of the solution to be voted on, converted from a string parameter.
    * @param isUpVote - A boolean indicating whether the vote is an upvote (true) or a downvote (false).
-   * @returns A promise that resolves to an object containing response metadata if the vote is successful.
-   * @throws {BadRequestException} If the vote fails due to the solution not existing or an issue processing the vote.
+   * @returns A promise that resolves to an object containing a response message if the vote is successful.
+   * @throws {BadRequestException} If the voting process fails, either because the solution does not exist or there was an issue processing the vote.
+   * @throws {Error} If an unexpected error occurs during the voting process, it is handled by the ErrorHandlerUtil.
+   *
+   * This method interacts with the `solutionService` to register a vote for a solution. It first attempts to vote on the solution
+   * using the provided `id` and `isUpVote` parameters. If the voting is unsuccessful, it throws a `BadRequestException` with a
+   * detailed error message. If any other error occurs, it is caught and handled by the `ErrorHandlerUtil`.
    */
   async voteProblem(
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
