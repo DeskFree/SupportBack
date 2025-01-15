@@ -109,15 +109,15 @@ export class ProblemService {
           .updateCounts(newCount)
           .catch((error) => {
             const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
-            console.log(errorMsg);
+            console.error(errorMsg);
             throw new BadRequestException(errorMsg);
           });
-        console.log(updatedProblem);
+
         return !!updatedProblem;
       })
       .catch((error) => {
         const errorMsg = `Failed to fetch the problem with ID '${problemId}' from the database. Error details: ${error.message}.`;
-        console.log(errorMsg);
+        console.error(errorMsg);
         throw new DatabaseException(errorMsg);
       });
     return problem;

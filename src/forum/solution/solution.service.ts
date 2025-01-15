@@ -139,8 +139,8 @@ export class SolutionService {
   ): Promise<Solution> {
     const userId = this.getUserID();
     const exist = await this.problemService.getProblem(problemId);
-
     newSolution.problemId = exist._id;
+
     newSolution.createdBy = userId;
 
     const solution = await this.solutionRepository

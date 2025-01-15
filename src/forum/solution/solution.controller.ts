@@ -24,7 +24,6 @@ export class SolutionController {
   createSolution(
     @Param('id', StringToObjectIdConverter) problemId: Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
-    @Res() res,
   ): Promise<Solution> {
     try {
       const solution = this.solutionService.createSolution(

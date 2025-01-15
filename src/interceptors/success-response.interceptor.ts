@@ -20,7 +20,7 @@ export class SuccessResponseInterceptor implements NestInterceptor {
         return {
           error: false,
           success: true,
-          data: restData,
+          data: restData._doc,
           message:
             responseMetadata?.message || 'Request processed successfully',
           statusCode: statusCode,
