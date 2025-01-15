@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,33 +7,43 @@ import {
   Param,
   Post,
   Put,
-  Query,
-  Res,
-  UsePipes,
 } from '@nestjs/common';
 import { SolutionService } from './solution.service';
 import { CreateSolutionDto, UpdateSolutionDto } from './dto';
 import { Types } from 'mongoose';
-import { Solution } from './schemas';
+import { Solution, SolutionWithMetadata } from './schemas';
 import { StringToObjectIdConverter } from '../pipes';
+import { ErrorHandlerUtil } from 'src/utils/error-handler.util';
+import { ProblemResponseDto } from '../problem/dto/response-problem.dto';
 
 @Controller('forum/solution')
 export class SolutionController {
   constructor(private readonly solutionService: SolutionService) {}
 
   @Post('/:id')
-  createSolution(
+  async createSolution(
     @Param('id', StringToObjectIdConverter) problemId: Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
-  ): Promise<Solution> {
+  ): Promise<SolutionWithMetadata> {
     try {
-      const solution = this.solutionService.createSolution(
+      const solution = await this.solutionService.createSolution(
         problemId,
         newSolution,
       );
 
-      return solution;
-    } catch (error) {}
+      if (!solution) {
+        throw new BadRequestException(
+          'Solution creation failed: Unable to create a new solution for the specified problem.',
+        );
+      }
+
+      return {
+        ...solution,
+        responseMetadata: { message: 'Solution created successfully' },
+      };
+    } catch (error) {
+      throw ErrorHandlerUtil.handleError(error);
+    }
   }
 
   @Get('/:id')
