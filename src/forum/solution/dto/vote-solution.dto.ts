@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsIn, IsNotEmpty } from 'class-validator';
 import { Types } from 'mongoose';
-import { VoteTypes } from '../enum/vote-types.enum';
+import { VoteTypes } from '../../enums';
 
 export class voteSolutionDto {
   @IsNotEmpty()

@@ -6,7 +6,7 @@ import {
   Equals,
   IsOptional,
 } from 'class-validator';
-import { ProblemStatus } from '../enums/status.enum';
+import { ProblemStatus } from '../../enums';
 import { Types } from 'mongoose';
 
 export class CreateProblemDto {

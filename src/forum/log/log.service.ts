@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Log } from './schemas';
 import { LogRepository } from './repository';
 import { CreateLogDto } from './dto';
-import { targetModels, LogActions } from './enum';
+import { targetModels, LogActions } from '../enums';
 import { LogFailureException } from 'src/exceptions';
 
 @Injectable()

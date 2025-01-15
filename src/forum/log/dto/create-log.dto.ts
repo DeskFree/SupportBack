@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { LogActions } from '../enum/log-actions.enum';
+import { LogActions } from '../../enums';
 
 export class CreateLogDto {
   userId: Types.ObjectId;

@@ -19,9 +19,8 @@ import {
 import { Problem } from './schemas';
 import { ProblemRepository } from './repository';
 import { LogService } from '../log/log.service';
-import { LogActions, targetModels } from '../log/enum';
-import { RateLimitService } from '../rate-limit/rate-limit.service';
-import { Counts, ProblemActions } from './enums';
+import { LogActions, targetModels, Counts, ProblemActions } from '../enums';
+import { RateLimitService } from '../rate-limit';
 import { DeleteResult, Types } from 'mongoose';
 import { SolutionService } from '../solution/solution.service';
 import { UserValidatorUtil } from 'src/utils';

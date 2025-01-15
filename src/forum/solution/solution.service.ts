@@ -7,19 +7,13 @@ import {
 } from '@nestjs/common';
 import { SolutionRepository } from './repository/solution.repository';
 import { Solution } from './schemas/solution.schema';
-import { CreateSolutionDto } from './dto/create-solution.dto';
+import { CreateSolutionDto, UpdateSolutionDto, voteSolutionDto } from './dto';
 import { DeleteResult, Types } from 'mongoose';
-import { UpdateSolutionDto } from './dto/update-solution.dto';
 import { LogService } from '../log/log.service';
-import { LogActions } from '../log/enum/log-actions.enum';
-import { targetModels } from '../log/enum/log-models.enum';
-import { DatabaseException } from 'src/exceptions/database.exception';
+import { LogActions, targetModels, SolutionActions, VoteTypes } from '../enums';
+import { DatabaseException } from 'src/exceptions';
 import { ProblemService } from '../problem/problem.service';
-import { UserValidatorUtil } from '../../utils/user-validator.util';
-import { error } from 'console';
-import { voteSolutionDto } from './dto/vote-solution.dto';
-import { VoteTypes } from './enum/vote-types.enum';
-import { SolutionActions } from './enum/solution-Actions.enum';
+import { UserValidatorUtil } from '../../utils';
 
 /**
  * @class SolutionService

@@ -11,11 +11,10 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { SolutionService } from './solution.service';
-import { CreateSolutionDto } from './dto/create-solution.dto';
+import { CreateSolutionDto, UpdateSolutionDto } from './dto';
 import { Types } from 'mongoose';
-import { UpdateSolutionDto } from './dto/update-solution.dto';
-import { Solution } from './schemas/solution.schema';
-import { StringToObjectIdConverter } from '../pipes/id-string-to-obj-converter.pipe';
+import { Solution } from './schemas';
+import { StringToObjectIdConverter } from '../pipes';
 
 @Controller('forum/solution')
 export class SolutionController {

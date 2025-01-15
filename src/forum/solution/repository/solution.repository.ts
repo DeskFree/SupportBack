@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Solution, SolutionDocument } from '../schemas/solution.schema';
+import { Solution, SolutionDocument } from '../schemas';
 import { DeleteResult, Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { CreateSolutionDto } from '../dto/create-solution.dto';
-import { UpdateSolutionDto } from '../dto/update-solution.dto';
-import { voteSolutionDto } from '../dto/vote-solution.dto';
-import { SolutionActions } from '../enum/solution-Actions.enum';
-import { DatabaseRollBackException } from 'src/exceptions/database-rollback.exception';
+import { SolutionActions } from '../../enums';
+import { DatabaseRollBackException } from 'src/exceptions';
+import { UpdateSolutionDto, voteSolutionDto, CreateSolutionDto } from '../dto';
 
 @Injectable()
 export class SolutionRepository {

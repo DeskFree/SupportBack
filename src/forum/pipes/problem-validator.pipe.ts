@@ -6,27 +6,25 @@ import {
 } from '@nestjs/common';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { ProblemStatus } from '../problem/enums/status.enum';
+import { ProblemStatus } from '../enums';
 import { Types } from 'mongoose';
 
 @Injectable()
 export class ProblemValidator implements PipeTransform {
   transform(value: any, metadata: ArgumentMetadata) {
-
-    
     if (metadata.type === 'param') {
       return this.validateId(value);
     }
     if (metadata.type === 'body') {
       return this.validateDto(value, metadata.metatype);
     }
-    
+
     if (metadata.type === 'query') {
       return this.validateDto(value, metadata.metatype);
     }
     return value;
   }
-  
+
   private validateId(id: string): string {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException(`Invalid ID format: '${id}'`);
@@ -34,10 +32,9 @@ export class ProblemValidator implements PipeTransform {
     return id;
   }
 
-  private validateDto(value: any, dtoClass: any):any {
-
+  private validateDto(value: any, dtoClass: any): any {
     value.status = this.validateAndToUpperCaseStatus(value.status);
-    
+
     const dtoInstance = plainToInstance(dtoClass, value);
 
     const errors = validateSync(dtoInstance);

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Problem, ProblemDocument } from '../schemas/problem.schema';
+import { Problem, ProblemDocument } from '../schemas';
 import { Model, Types } from 'mongoose';
-import { CreateProblemDto } from '../dto/create-problem.dto';
-import { UpdateProblemDto } from '../dto/update-problem.Dto';
-import { UpdateProblemCountsDto } from '../dto/update-problem-counts.dto';
-import { ProblemActions } from '../enums/problem-actions.enum';
+import {
+  CreateProblemDto,
+  UpdateProblemDto,
+  UpdateProblemCountsDto,
+} from '../dto';
+import { ProblemActions } from '../../enums';
 
 /**
  * Repository class for managing Problem entities in the database.
