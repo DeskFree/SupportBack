@@ -10,7 +10,6 @@ import {
   Post,
   Put,
   Query,
-  Res,
   UsePipes,
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
@@ -19,6 +18,7 @@ import { Problem } from './schemas';
 import { ProblemValidator, StringToObjectIdConverter } from '../pipes';
 import { Types } from 'mongoose';
 import { ErrorHandlerUtil } from 'src/utils';
+import { response } from 'express';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
@@ -41,10 +41,15 @@ export class ProblemController {
    */
   @Post()
   @UsePipes(new ProblemValidator())
-  async createProblem(@Body() newProblem: CreateProblemDto): Promise<Problem> {
+  async createProblem(@Body() newProblem: CreateProblemDto): Promise<any> {
     try {
       const problem = await this.problemService.createProblem(newProblem);
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: {
+          message: 'Problem created successfully',
+        },
+      };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
     }
@@ -58,7 +63,7 @@ export class ProblemController {
    */
   @Get()
   @UsePipes(new ProblemValidator())
-  async getProblems(@Query() param: SearchProblemDto): Promise<Problem[]> {
+  async getProblems(@Query() param: SearchProblemDto): Promise<any> {
     try {
       let problems;
       if (param && Object.keys(param).length) {
@@ -73,7 +78,10 @@ export class ProblemController {
             : 'No problems found';
         throw new NotFoundException(message);
       }
-      return problems;
+      return {
+        ...problems,
+        responseMetadata: { message: 'Problems retrieved successfully' },
+      };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
     }
@@ -88,19 +96,25 @@ export class ProblemController {
    */
   @Put('/:id')
   @UsePipes(new ProblemValidator())
-  updateProblem(
+  async updateProblem(
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Body() updatedProblem: UpdateProblemDto,
-  ): Promise<Problem> {
+  ): Promise<any> {
     try {
-      const problem = this.problemService.updateProblem(id, updatedProblem);
+      const problem = await this.problemService.updateProblem(
+        id,
+        updatedProblem,
+      );
       if (!problem) {
         throw new BadRequestException({
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Failed to update problem with ID '${id}'. The problem may not exist or there was an issue processing the update.`,
         });
       }
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: { message: 'Problem updated successfully' },
+      };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
     }
@@ -113,11 +127,11 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the retrieval process.
    */
   @Get('/:id')
-  getProblem(
+  async getProblem(
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
-  ): Promise<Problem> {
+  ): Promise<any> {
     try {
-      const problem = this.problemService.getProblemWithSolutions(id);
+      const problem = await this.problemService.getProblemWithSolutions(id);
 
       if (!problem) {
         throw new NotFoundException({
@@ -126,7 +140,10 @@ export class ProblemController {
         });
       }
 
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: { message: 'Problem retrieved successfully' },
+      };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
     }
@@ -139,11 +156,11 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the deletion process.
    */
   @Delete('/:id')
-  deleteProblem(
+  async deleteProblem(
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
-  ): Promise<Problem> {
+  ): Promise<any> {
     try {
-      const problem = this.problemService.deleteProblem(id);
+      const problem = await this.problemService.deleteProblem(id);
 
       if (!problem) {
         throw new NotFoundException({
@@ -151,7 +168,10 @@ export class ProblemController {
           message: `Failed to delete problem with ID '${id}'. The problem may not exist or there was an issue processing the read.`,
         });
       }
-      return problem;
+      return {
+        ...problem,
+        responseMetadata: { message: 'Problem deleted successfully' },
+      };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
     }
@@ -165,19 +185,23 @@ export class ProblemController {
    * @throws HttpException - If the problem does not exist or an error occurs during the voting process.
    */
   @Put('/upvote/:id/:isUpVote')
-  voteProblem(
+  async voteProblem(
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Param('isUpVote') isUpVote: boolean,
-  ): Promise<boolean> {
+  ): Promise<any> {
     try {
-      const isVoted = this.problemService.vote(id, isUpVote);
+      const isVoted = await this.problemService.vote(id, isUpVote);
       if (!isVoted) {
         throw new BadRequestException(
           `Failed to upvote problem with ID '${id}'. The problem may not exist or there was an issue processing the ${isUpVote ? 'up vote' : 'down vote'}.`,
         );
       }
 
-      return isVoted;
+      return {
+        responseMetadata: {
+          message: `Problem ${isUpVote ? 'upvoted' : 'downvoted'} successfully`,
+        },
+      };
     } catch (error) {
       throw ErrorHandlerUtil.handleError(error);
     }
