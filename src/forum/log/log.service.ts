@@ -4,6 +4,8 @@ import { LogRepository } from './repository';
 import { CreateLogDto } from './dto';
 import { targetModels, LogActions } from '../enums';
 import { LogFailureException } from 'src/exceptions';
+import { SearchLogDto } from './dto/search-log.dto';
+import { Types } from 'mongoose';
 
 /**
  * @class LogService
@@ -107,48 +109,13 @@ export class LogService {
    * If an error occurs during the retrieval process, it catches the error and throws a
    * `LogFailureException` with a detailed error message.
    */
-  async getLogsByAction(action: LogActions): Promise<Log[]> {
-    return await this.logRepository.getLogs({ action }).catch((error) => {
+  async searchLogs(query: SearchLogDto): Promise<Log[]> {
+    Object.keys(query).forEach(
+      (key) => query[key] === undefined && delete query[key],
+    );
+    return await this.logRepository.getLogs(query).catch((error) => {
       throw new LogFailureException(
-        `Failed to retrieve logs with action ${action}. Error details: ${error.message}.`,
-      );
-    });
-  }
-
-  /**
-   * Retrieves logs filtered by the specified target model.
-   *
-   * @param {LogActions} targetModel - The target model to filter logs by.
-   * @returns {Promise<Log[]>} A promise that resolves to an array of logs matching the target model.
-   * @throws {LogFailureException} If there is an error retrieving the logs.
-   *
-   * This method interacts with the log repository to fetch logs that match the given target model.
-   * If an error occurs during the retrieval process, a `LogFailureException` is thrown with details
-   * about the error.
-   */
-  async getLogsByTargetModel(targetModel: LogActions): Promise<Log[]> {
-    return await this.logRepository.getLogs({ targetModel }).catch((error) => {
-      throw new LogFailureException(
-        `Failed to retrieve logs with target model ${targetModel}. Error details: ${error.message}.`,
-      );
-    });
-  }
-
-  /**
-   * Retrieves logs based on the specified target ID.
-   *
-   * @param {LogActions} targetId - The target ID for which logs are to be retrieved.
-   * @returns {Promise<Log[]>} - A promise that resolves to an array of logs associated with the given target ID.
-   * @throws {LogFailureException} - Throws an exception if there is an error while retrieving the logs.
-   *
-   * This method interacts with the log repository to fetch logs that match the provided target ID.
-   * If an error occurs during the retrieval process, a `LogFailureException` is thrown with details
-   * about the error.
-   */
-  async getLogsByTargetId(targetId: LogActions): Promise<Log[]> {
-    return await this.logRepository.getLogs({ targetId }).catch((error) => {
-      throw new LogFailureException(
-        `Failed to retrieve logs with target ID ${targetId}. Error details: ${error.message}.`,
+        `Failed to retrieve logs with action ${query}. Error details: ${error.message}.`,
       );
     });
   }
@@ -175,7 +142,7 @@ export class LogService {
     });
 
     const clearedLog: CreateLogDto = {
-      userId: null, // will get
+      userId: new Types.ObjectId('6781080039c7df8d42da6ecd'), // will get
       action: LogActions.CLEAR,
       targetId: null, //null cuz all docs has been clear
       targetModel: targetModels.LOG,
