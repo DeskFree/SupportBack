@@ -35,23 +35,43 @@ export class LogService {
   }
 
   getAllLogs(): Promise<Log[]> {
-    return this.logRepository.getLogs({});
+    return this.logRepository.getLogs({}).catch((error) => {
+      throw new LogFailureException(
+        `Failed to retrieve all logs. Error details: ${error.message}.`,
+      );
+    });
   }
 
   getLogsByAction(action: LogActions): Promise<Log[]> {
-    return this.logRepository.getLogs({ action });
+    return this.logRepository.getLogs({ action }).catch((error) => {
+      throw new LogFailureException(
+        `Failed to retrieve logs with action ${action}. Error details: ${error.message}.`,
+      );
+    });
   }
 
   getLogsByTargetModel(targetModel: LogActions): Promise<Log[]> {
-    return this.logRepository.getLogs({ targetModel });
+    return this.logRepository.getLogs({ targetModel }).catch((error) => {
+      throw new LogFailureException(
+        `Failed to retrieve logs with target model ${targetModel}. Error details: ${error.message}.`,
+      );
+    });
   }
 
   getLogsByTargetId(targetId: LogActions): Promise<Log[]> {
-    return this.logRepository.getLogs({ targetId });
+    return this.logRepository.getLogs({ targetId }).catch((error) => {
+      throw new LogFailureException(
+        `Failed to retrieve logs with target ID ${targetId}. Error details: ${error.message}.`,
+      );
+    });
   }
 
   async clearLogs(): Promise<Log> {
-    await this.logRepository.clearLogs();
+    await this.logRepository.clearLogs().catch((error) => {
+      throw new LogFailureException(
+        `Failed to clear all logs. Error details: ${error.message}.`,
+      );
+    });
 
     const clearedLog: CreateLogDto = {
       userId: null, // will get
@@ -61,6 +81,10 @@ export class LogService {
       details: 'All logs have been cleared.',
     };
 
-    return this.createLog(clearedLog);
+    return this.createLog(clearedLog).catch((error) => {
+      throw new LogFailureException(
+        `Failed to record the clearing of all logs. Error details: ${error.message}.`,
+      );
+    });
   }
 }

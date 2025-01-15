@@ -16,7 +16,7 @@ export class LogRepository {
     return this.logModel.find(query).exec();
   }
 
-  async clearLogs() {
-    await this.logModel.deleteMany({});
+  async clearLogs(): Promise<any> {
+    return await this.logModel.deleteMany({});
   }
 }
