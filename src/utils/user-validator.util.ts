@@ -1,7 +1,17 @@
 import { Types } from 'mongoose';
 import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
-
+/**
+ * Utility class for user validation.
+ */
 export class UserValidatorUtil {
+  /**
+   * Validates if the given user ID matches the reference owner ID.
+   *
+   * @param userId - The ID of the user to validate.
+   * @param refferenceOwnerId - The ID of the reference owner to compare against.
+   * @returns `true` if the user ID matches the reference owner ID.
+   * @throws {UnauthorizedAccessException} If the user ID does not match the reference owner ID.
+   */
   static validateUser(
     userId: Types.ObjectId,
     refferenceOwnerId: Types.ObjectId,
