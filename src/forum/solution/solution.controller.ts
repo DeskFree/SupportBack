@@ -28,9 +28,9 @@ export class SolutionController {
   }
 
   @Get('/:id')
-  getAllSolutions(@Param('id') id: Types.ObjectId): Promise<Solution[]> {
-    id = new Types.ObjectId(id);
-    return this.solutionService.getSolutions(id);
+  getAllSolutions(@Param('id') problemId: Types.ObjectId): Promise<Solution[]> {
+    problemId = new Types.ObjectId(problemId);
+    return this.solutionService.getSolutions(problemId);
   }
 
   @Delete('/:id')
@@ -44,7 +44,7 @@ export class SolutionController {
     @Param('id') id: Types.ObjectId,
     @Body() updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
-    id = new Types.ObjectId(id);
+    console.log('id', typeof id);
     return this.solutionService.updateSolution(id, updatedSolution);
   }
 }
