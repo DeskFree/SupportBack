@@ -14,11 +14,9 @@ import {
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
 import { SearchProblemDto, CreateProblemDto, UpdateProblemDto } from './dto';
-import { Problem } from './schemas';
 import { ProblemValidator, StringToObjectIdConverter } from '../../pipes';
 import { Types } from 'mongoose';
 import { ErrorHandlerUtil } from 'src/utils';
-import { response } from 'express';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
