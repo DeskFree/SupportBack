@@ -140,11 +140,11 @@ export class SolutionService {
    * @throws {DatabaseException} If an error occurs while creating the solution.
    */
   async createSolution(
-    id: Types.ObjectId,
+    problemId: Types.ObjectId,
     newSolution: CreateSolutionDto,
   ): Promise<Solution> {
     const userId = this.getUserID();
-    const exist = await this.problemService.getProblem(id);
+    const exist = await this.problemService.getProblem(problemId);
 
     newSolution.problemId = exist._id;
     newSolution.createdBy = userId;
@@ -228,20 +228,20 @@ export class SolutionService {
    * @throws {NotFoundException} If no solutions are found for the given problem ID.
    * @throws {DatabaseException} If an error occurs while retrieving the solutions.
    */
-  async getSolutions(id: Types.ObjectId): Promise<Solution[]> {
+  async getSolutions(problemId: Types.ObjectId): Promise<Solution[]> {
     return await this.solutionRepository
-      .getSolutions(id)
+      .getSolutions(problemId)
       .then((solutions) => {
         if (solutions.length === 0) {
           throw new NotFoundException(
-            `No solutions found for the problem with ID: ${id}. Please ensure the problem is correct and try again.`,
+            `No solutions found for the problem with ID: ${problemId}. Please ensure the problem is correct and try again.`,
           );
         }
         return solutions;
       })
       .catch((error) => {
         throw new DatabaseException(
-          `Failed to retrieve solutions for problem ID: ${id}. Error details: ${error.message}`,
+          `Failed to retrieve solutions for problem ID: ${problemId}. Error details: ${error.message}`,
         );
       });
   }
@@ -256,16 +256,16 @@ export class SolutionService {
    * @throws {NotFoundException} If no solution is found for the given ID.
    * @throws {DatabaseException} If an error occurs while deleting the solution.
    */
-  async deleteSolution(id: Types.ObjectId): Promise<Solution> {
+  async deleteSolution(solutionId: Types.ObjectId): Promise<Solution> {
     const userId: Types.ObjectId = this.getUserID();
-    const originalSolution = await this.getSolution(id);
+    const originalSolution = await this.getSolution(solutionId);
     const isUserValid: boolean = UserValidatorUtil.validateUser(
       userId,
       originalSolution.createdBy,
     );
 
     const solution = await this.solutionRepository
-      .deleteSolution(id)
+      .deleteSolution(solutionId)
       .then(async (solution) => {
         const isProblemUpdated = await this.problemService.removeSolution(
           originalSolution.problemId,
@@ -286,7 +286,7 @@ export class SolutionService {
         } else {
           this.rollBackSolution(solution, SolutionActions.DELETE);
           throw new DatabaseException(
-            `Failed to delete solution for problem ID: ${id}. The problem was not updated correctly.`,
+            `Failed to delete solution for problem ID: ${solutionId}. The problem was not updated correctly.`,
           );
         }
       })
@@ -299,7 +299,7 @@ export class SolutionService {
           targetModel: targetModels.SOLUTION,
         });
         throw new DatabaseException(
-          `Failed to delete solution for problem ID: ${id}. Error details: ${error.message}`,
+          `Failed to delete solution for problem ID: ${solutionId}. Error details: ${error.message}`,
         );
       });
 
@@ -317,15 +317,15 @@ export class SolutionService {
    * @throws {NotFoundException} If no solution is found for the given ID.
    */
   async updateSolution(
-    id: Types.ObjectId,
+    solutionId: Types.ObjectId,
     updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
     const userId: Types.ObjectId = this.getUserID();
-    const originalSolution = await this.getSolution(id);
+    const originalSolution = await this.getSolution(solutionId);
     UserValidatorUtil.validateUser(userId, originalSolution.createdBy);
 
     const solution: Solution = await this.solutionRepository
-      .updateSolutions(id, updatedSolution)
+      .updateSolutions(solutionId, updatedSolution)
       .then(async (solution) => {
         const log = await this.logService.createLog(
           {
@@ -347,7 +347,7 @@ export class SolutionService {
           targetModel: targetModels.SOLUTION,
         });
         throw new DatabaseException(
-          `Failed to update solution for problem ID: ${id}. Error details: ${error.message}`,
+          `Failed to update solution for problem ID: ${solutionId}. Error details: ${error.message}`,
         );
       });
     return solution;

@@ -20,11 +20,11 @@ export class SolutionController {
 
   @Post('/:id')
   createSolution(
-    @Param('id') id: Types.ObjectId,
+    @Param('id') problemId: Types.ObjectId,
     @Body() newSolution: CreateSolutionDto,
   ): Promise<Solution> {
-    id = new Types.ObjectId(id);
-    return this.solutionService.createSolution(id, newSolution);
+    problemId = new Types.ObjectId(problemId);
+    return this.solutionService.createSolution(problemId, newSolution);
   }
 
   @Get('/:id')
@@ -34,17 +34,17 @@ export class SolutionController {
   }
 
   @Delete('/:id')
-  deleteSolution(@Param('id') id: Types.ObjectId): Promise<Solution> {
-    id = new Types.ObjectId(id);
-    return this.solutionService.deleteSolution(id);
+  deleteSolution(@Param('id') solutionId: Types.ObjectId): Promise<Solution> {
+    solutionId = new Types.ObjectId(solutionId);
+    return this.solutionService.deleteSolution(solutionId);
   }
 
   @Put('/:id')
   updateSolution(
-    @Param('id') id: Types.ObjectId,
+    @Param('id') solutionId: Types.ObjectId,
     @Body() updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
-    console.log('id', typeof id);
-    return this.solutionService.updateSolution(id, updatedSolution);
+    console.log('id', typeof solutionId);
+    return this.solutionService.updateSolution(solutionId, updatedSolution);
   }
 }

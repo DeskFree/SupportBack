@@ -42,16 +42,16 @@ export class SolutionRepository {
     return await new this.solutionModel(newSolution).save();
   }
 
-  async getSolutions(id: Types.ObjectId): Promise<Solution[]> {
-    return await this.solutionModel.find({ problemId: id }).exec();
+  async getSolutions(problemId: Types.ObjectId): Promise<Solution[]> {
+    return await this.solutionModel.find({ problemId }).exec();
   }
 
-  async getSolution(id: Types.ObjectId): Promise<Solution> {
-    return await this.solutionModel.findById(id).exec();
+  async getSolution(solutionId: Types.ObjectId): Promise<Solution> {
+    return await this.solutionModel.findById(solutionId).exec();
   }
 
-  async deleteSolution(id: Types.ObjectId): Promise<Solution> {
-    return await this.solutionModel.findByIdAndDelete(id).exec();
+  async deleteSolution(solutionId: Types.ObjectId): Promise<Solution> {
+    return await this.solutionModel.findByIdAndDelete(solutionId).exec();
   }
 
   async deleteAllSolution(problemId: Types.ObjectId): Promise<DeleteResult> {
@@ -69,11 +69,13 @@ export class SolutionRepository {
   }
 
   async updateSolutions(
-    id: Types.ObjectId,
+    solutionId: Types.ObjectId,
     updatedSolution: UpdateSolutionDto,
   ): Promise<Solution> {
     return await this.solutionModel
-      .findByIdAndUpdate(id, updatedSolution, { returnDocument: 'after' })
+      .findByIdAndUpdate(solutionId, updatedSolution, {
+        returnDocument: 'after',
+      })
       .exec();
   }
 }
