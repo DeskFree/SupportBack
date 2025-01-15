@@ -1,5 +1,5 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class StringToObjectIdConverter implements PipeTransform {

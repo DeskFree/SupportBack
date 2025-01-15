@@ -15,7 +15,7 @@ import {
 import { ProblemService } from './problem.service';
 import { SearchProblemDto, CreateProblemDto, UpdateProblemDto } from './dto';
 import { Problem } from './schemas';
-import { ProblemValidator, StringToObjectIdConverter } from '../pipes';
+import { ProblemValidator, StringToObjectIdConverter } from '../../pipes';
 import { Types } from 'mongoose';
 import { ErrorHandlerUtil } from 'src/utils';
 import { response } from 'express';

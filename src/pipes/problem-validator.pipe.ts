@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { ProblemStatus } from '../enums';
+import { ProblemStatus } from '../forum/enums';
 import { Types } from 'mongoose';
 
 @Injectable()
