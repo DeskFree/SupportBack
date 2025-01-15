@@ -16,20 +16,18 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import {
+  DatabaseException,
+  LogFailureException,
+  UnauthorizedAccessException,
+  TooManyRequestsException,
+  DuplicateException,
+} from 'src/exceptions';
 import { ProblemService } from './problem.service';
-import { SearchProblemDto } from './dto/search-problem.dto';
-import { CreateProblemDto } from './dto/create-problem.dto';
-import { UpdateProblemDto } from './dto/update-problem.Dto';
-import { Problem } from './schemas/problem.schema';
-import { ProblemValidator } from '../pipes/problem-validator.pipe';
-import { ValidationError } from 'class-validator';
-import { DatabaseException } from 'src/exceptions/database.exception';
-import { LogFailureException } from 'src/exceptions/log-failure.exception';
-import { UnauthorizedAccessException } from 'src/exceptions/unauthorized-access.exception';
-import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
-import { DuplicateException } from 'src/exceptions/duplicate-problem.exception';
+import { SearchProblemDto, CreateProblemDto, UpdateProblemDto } from './dto';
+import { Problem } from './schemas';
+import { ProblemValidator, StringToObjectIdConverter } from '../pipes';
 import { Types } from 'mongoose';
-import { StringToObjectIdConverter } from '../pipes/id-string-to-obj-converter.pipe';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.

@@ -5,25 +5,26 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { SearchProblemDto } from './dto/search-problem.dto';
-import { Problem } from './schemas/problem.schema';
-import { CreateProblemDto } from './dto/create-problem.dto';
-import { UpdateProblemDto } from './dto/update-problem.dto';
-import { ProblemRepository } from './repository/problem.repository';
+import {
+  DuplicateException,
+  TooManyRequestsException,
+  DatabaseException,
+} from '../../exceptions';
+import {
+  SearchProblemDto,
+  CreateProblemDto,
+  UpdateProblemDto,
+  UpdateProblemCountsDto,
+} from './dto';
+import { Problem } from './schemas';
+import { ProblemRepository } from './repository';
 import { LogService } from '../log/log.service';
-import { LogActions } from '../log/enum/log-actions.enum';
-import { targetModels } from '../log/enum/log-models.enum';
-import { DuplicateException } from '../../exceptions/duplicate-problem.exception';
+import { LogActions, targetModels } from '../log/enum';
 import { RateLimitService } from '../rate-limit/rate-limit.service';
-import { Counts } from './enums/counts.enum';
-import { UpdateProblemCountsDto } from './dto/update-problem-counts.dto';
-import { TooManyRequestsException } from 'src/exceptions/too-many-requests-exception';
-import { DatabaseException } from 'src/exceptions/database.exception';
-import {} from 'src/exceptions/unauthorized-access.exception';
+import { Counts, ProblemActions } from './enums';
 import { DeleteResult, Types } from 'mongoose';
 import { SolutionService } from '../solution/solution.service';
-import { ProblemActions } from './enums/problem-actions.enum';
-import { UserValidatorUtil } from 'src/utils/user-validator.util';
+import { UserValidatorUtil } from 'src/utils';
 
 /**
  * Service class for managing Problem entities.
