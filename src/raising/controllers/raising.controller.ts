@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, HttpCode, HttpStatus, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, HttpCode, HttpStatus, UseInterceptors, UploadedFiles, Patch } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateRaisingDto } from '../dto/create-raising.dto';
 import { UpdateRaisingDto } from '../dto/update-raising.dto';
@@ -46,7 +46,7 @@ export class RaisingController {
         return await this.raisingService.findOne(id);
     }
 
-    @Put(':id')
+    @Patch(':id')
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(FilesInterceptor('documents'))
     async updateById(
