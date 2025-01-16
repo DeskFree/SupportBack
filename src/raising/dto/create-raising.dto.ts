@@ -1,16 +1,38 @@
-import { IsNotEmpty, IsString, IsOptional, IsArray, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsArray, IsDateString, IsEnum, MinLength, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { Priority, Status } from '../types/enums';
+
+export class DocumentDto {
+    @IsNotEmpty()
+    @IsString()
+    filename: string;
+
+    @IsNotEmpty()
+    @IsString()
+    path: string;
+
+    @IsNotEmpty()
+    @IsString()
+    mimetype: string;
+
+    @IsNotEmpty()
+    size: number;
+}
 
 export class CreateRaisingDto {
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    ticket_id: string;
+    ticket_id?: string; // Made optional since it will be auto-generated
 
     @IsNotEmpty()
     @IsString()
+    @MinLength(5)
+    @MaxLength(100)
     title: string;
 
     @IsNotEmpty()
     @IsString()
+    @MinLength(10)
     description: string;
 
     @IsNotEmpty()
@@ -18,12 +40,12 @@ export class CreateRaisingDto {
     creator: string;
 
     @IsNotEmpty()
-    @IsString()
-    priority: string;
+    @IsEnum(Priority)
+    priority: Priority;
 
     @IsOptional()
-    @IsString()
-    status?: string;
+    @IsEnum(Status)
+    status?: Status;
 
     @IsOptional()
     @IsDateString()
@@ -33,4 +55,9 @@ export class CreateRaisingDto {
     @IsArray()
     @IsString({ each: true })
     responses?: string[];
+
+    @IsOptional()
+    @IsArray()
+    @Type(() => DocumentDto)
+    documents?: DocumentDto[];
 }
