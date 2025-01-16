@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { Counts } from '../enums/counts.enum';
+import { Counts } from '../../enums';
 
 export class UpdateProblemCountsDto {
   problemId: Types.ObjectId;

@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { LogActions } from '../enum/log-actions.enum';
-import { targetModels } from '../enum/log-models.enum';
+import { LogActions, targetModels } from '../../enums';
 
 export type LogDocument = Log & Document;
 

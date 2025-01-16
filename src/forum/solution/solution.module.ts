@@ -1,15 +1,22 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SolutionController } from './solution.controller';
 import { SolutionService } from './solution.service';
-import { SolutionRepository } from './repository/solution.repository';
+import { SolutionRepository } from './repository';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Solution, SolutionSchema } from './schemas/solution.schema';
-import { ProblemRepository } from '../problem/repository/problem.repository';
+import { Solution, SolutionSchema } from './schemas';
 import { ProblemModule } from '../problem/problem.module';
+import { LogModule } from '../log/log.module';
 
 @Module({
-  imports:[MongooseModule.forFeature([{name:Solution.name,schema:SolutionSchema}]),ProblemModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Solution.name, schema: SolutionSchema },
+    ]),
+    forwardRef(() => ProblemModule),
+    LogModule,
+  ],
   controllers: [SolutionController],
-  providers: [SolutionService,SolutionRepository]
+  providers: [SolutionService, SolutionRepository],
+  exports: [SolutionService],
 })
 export class SolutionModule {}
