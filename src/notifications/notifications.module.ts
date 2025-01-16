@@ -15,6 +15,7 @@ import { UserModule } from 'src/user/user.module';
     ]),
     UserModule
   ],
+  exports: [NotificationService],
   controllers: [NotificationController],
   providers: [NotificationService, NotificationRepository,EmailService],
 })

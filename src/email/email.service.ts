@@ -18,18 +18,17 @@ export class EmailService {
     });
   }
 
-  async sendEmail(to: string, subject: string, text: string): Promise<void> {
-    const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender address
-      to, // Recipient address
-      subject, // Email subject
-      text, // Email body
-    };
+  async sendEmail(to: string[], subject: string, text: string): Promise<void> {
+      const mailOptions = {
+        from: process.env.EMAIL_USER, // Sender address
+        to, // Recipient address
+        subject, // Email subject
+        text, // Email body
+      };
+      // Send the email
+      const info = this.transporter.sendMail(mailOptions);
 
-    // Send the email
-    const info = await this.transporter.sendMail(mailOptions);
-
-    // Log the email preview URL (for testing purposes)
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+      // Log the email preview URL (for testing purposes)
+      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
   }
 }
