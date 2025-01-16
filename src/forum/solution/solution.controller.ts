@@ -15,7 +15,7 @@ import { CreateSolutionDto, UpdateSolutionDto } from './dto';
 import { Types } from 'mongoose';
 import { Solution } from './schemas';
 import { StringToObjectIdConverter } from '../../pipes';
-import { ErrorHandlerUtil } from 'src/utils/error-handler.util';
+import { ErrorHandlerUtil } from 'src/utils';
 import { response } from 'express';
 
 /**

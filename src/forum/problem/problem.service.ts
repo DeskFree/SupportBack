@@ -80,46 +80,40 @@ export class ProblemService {
     countType: Counts,
   ): Promise<boolean> {
     let count: number;
-    const problem = this.getProblem(problemId)
-      .then(async (problem) => {
-        const multiplier = isIncrease ? 1 : -1;
-        switch (countType) {
-          case Counts.DOWN_VOTES:
-            count = problem.downVotes + 1;
-            break;
-          case Counts.UP_VOTES:
-            count = problem.upVotes + 1;
-            break;
-          case Counts.VIEWS:
-            count = problem.views + 1;
-            break;
-          case Counts.SOLUTION_COUNT:
-            count = problem.solutionCount + multiplier;
-            break;
-          default:
-            throw new BadRequestException(`${countType} is Invalid Count Type`);
-            break;
-        }
-        const newCount: UpdateProblemCountsDto = {
-          problemId,
-          countType,
-          count,
-        };
-        const updatedProblem = await this.problemRepository
-          .updateCounts(newCount)
-          .catch((error) => {
-            const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
-            console.error(errorMsg);
-            throw new BadRequestException(errorMsg);
-          });
+    const problem = this.getProblem(problemId).then(async (problem) => {
+      const multiplier = isIncrease ? 1 : -1;
+      switch (countType) {
+        case Counts.DOWN_VOTES:
+          count = problem.downVotes + 1;
+          break;
+        case Counts.UP_VOTES:
+          count = problem.upVotes + 1;
+          break;
+        case Counts.VIEWS:
+          count = problem.views + 1;
+          break;
+        case Counts.SOLUTION_COUNT:
+          count = problem.solutionCount + multiplier;
+          break;
+        default:
+          throw new BadRequestException(`${countType} is Invalid Count Type`);
+          break;
+      }
+      const newCount: UpdateProblemCountsDto = {
+        problemId,
+        countType,
+        count,
+      };
+      const updatedProblem = await this.problemRepository
+        .updateCounts(newCount)
+        .catch((error) => {
+          const errorMsg = `Failed to ${isIncrease ? 'increase' : 'decrease'} the ${countType} count : ${error.message}`;
+          console.error(errorMsg);
+          throw new DatabaseException(errorMsg);
+        });
 
-        return !!updatedProblem;
-      })
-      .catch((error) => {
-        const errorMsg = `Failed to fetch the problem with ID '${problemId}' from the database. Error details: ${error.message}.`;
-        console.error(errorMsg);
-        throw new DatabaseException(errorMsg);
-      });
+      return !!updatedProblem;
+    });
     return problem;
   }
 

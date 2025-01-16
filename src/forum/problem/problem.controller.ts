@@ -14,11 +14,9 @@ import {
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
 import { SearchProblemDto, CreateProblemDto, UpdateProblemDto } from './dto';
-import { Problem } from './schemas';
 import { ProblemValidator, StringToObjectIdConverter } from '../../pipes';
 import { Types } from 'mongoose';
 import { ErrorHandlerUtil } from 'src/utils';
-import { response } from 'express';
 
 /**
  * Controller class for handling HTTP requests related to Problem entities.
@@ -67,10 +65,11 @@ export class ProblemController {
     try {
       let problems;
       if (param && Object.keys(param).length) {
-        problems = this.problemService.searchProblem(param);
+        problems = await this.problemService.searchProblem(param);
       } else {
         problems = await this.problemService.getAllProblem();
       }
+
       if (!problems || problems.length === 0) {
         const message =
           param && (param.title || param.tags || param.status)
@@ -100,24 +99,21 @@ export class ProblemController {
     @Param('id', StringToObjectIdConverter) id: Types.ObjectId,
     @Body() updatedProblem: UpdateProblemDto,
   ): Promise<any> {
-    try {
-      const problem = await this.problemService.updateProblem(
-        id,
-        updatedProblem,
-      );
-      if (!problem) {
-        throw new BadRequestException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: `Failed to update problem with ID '${id}'. The problem may not exist or there was an issue processing the update.`,
-        });
-      }
-      return {
-        ...problem,
-        responseMetadata: { message: 'Problem updated successfully' },
-      };
-    } catch (error) {
-      throw ErrorHandlerUtil.handleError(error);
+    // try {
+    const problem = await this.problemService.updateProblem(id, updatedProblem);
+    if (!problem) {
+      throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Failed to update problem with ID '${id}'. The problem may not exist or there was an issue processing the update.`,
+      });
     }
+    return {
+      ...problem,
+      responseMetadata: { message: 'Problem updated successfully' },
+    };
+    // } catch (error) {
+    //   throw ErrorHandlerUtil.handleError(error);
+    // }
   }
 
   /**
