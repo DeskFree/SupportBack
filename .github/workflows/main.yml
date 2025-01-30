@@ -40,4 +40,7 @@ jobs:
             docker stop support-desk-back || true
             docker rm support-desk-back || true
 
-            docker run -d --name support-desk-back -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/support-desk-back:latest
+            echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
+            docker run -d --name support-desk-back --env-file .env -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/support-desk-back:latest
